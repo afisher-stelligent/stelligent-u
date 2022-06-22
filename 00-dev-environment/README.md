@@ -8,13 +8,13 @@
     - [Principle 0.1](#principle-01)
     - [Practice 0.1](#practice-01)
       - [Lab 0.1.1: AWS Access Keys](#lab-011-aws-access-keys)
-        - [Option 1: Getting Credentials via STS command](#option-1-getting-credentials-via-sts-command)
-          - [Exercise 0.1.1: MFA Script](#exercise-011-mfa-script)
-          - [Question 0.1.1: 1](#question-011-1)
+        - [Option 1: Getting Credentials via STS command (in the AWS console > [user] > Summary page under "Security credentials" tab, use the value for the "Assigned MFA device"). The token-code is your MFA validation code](#option-1-getting-credentials-via-sts-command-in-the-aws-console--user--summary-page-under-security-credentials-tab-use-the-value-for-the-assigned-mfa-device-the-token-code-is-your-mfa-validation-code)
+        - [Exercise 0.1.1: MFA Script](#exercise-011-mfa-script)
+        - [Question 0.1.1: 1](#question-011-1)
           - [Question 0.1.1: 2](#question-011-2)
         - [Option 2: Using AWS Vault to automatically handle your temporary tokens](#option-2-using-aws-vault-to-automatically-handle-your-temporary-tokens)
       - [Lab 0.1.2: GitHub](#lab-012-github)
-      - [Lab 0.1.3: Cloud9 Environment](#lab-013-cloud9-environment)
+      - [Lab 0.1.3: Cloud9 Environment (Optional)](#lab-013-cloud9-environment-optional)
       - [Lab 0.1.4: Clone Repository](#lab-014-clone-repository)
     - [Retrospective 0.1](#retrospective-01)
       - [Question: Environments](#question-environments)
@@ -48,8 +48,8 @@ GitHub code repositories, and, optionally, AWS Cloud9 for your development envir
 
 #### Lab 0.1.1: AWS Access Keys
 
-Save your AWS access key and secret key to a private credentials file on your laptop before enabling 
-MFA.  You won't be able to retrieve your token if the access key and secret key are not added to your 
+Save your AWS access key and secret key to a private credentials file on your laptop before enabling
+MFA.  You won't be able to retrieve your token if the access key and secret key are not added to your
 credentials file. You will need to [install the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-welcome.html)
 and then run some simple commands to confirm access using your keys:
 
@@ -60,14 +60,14 @@ Remember that the combination of an access key and a secret key are
 the same as user credentials and should not be given out or stored
 in a public location like a GitHub repository, nor should they be
 transmitted in an insecure manner like unencrypted email.
-_Never_ commit credentials to a git repo.
+*Never* commit credentials to a git repo.
 
 - [Enable MFA](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa_enable_virtual.html)
   for your AWS account. With MFA enabled you will need to generate temporary
   credentials using your MFA device and STS. You can do this in a few
   ways. The first way would be to request the token from STS via the CLI.
 
-##### Option 1: Getting Credentials via STS command (in the AWS console > [user] > Summary page under "Security credentials" tab, use the value for the "Assigned MFA device"). The token-code is your MFA validation code.
+##### Option 1: Getting Credentials via STS command (in the AWS console > [user] > Summary page under "Security credentials" tab, use the value for the "Assigned MFA device"). The token-code is your MFA validation code
 
 ```shell
 aws sts get-session-token \
