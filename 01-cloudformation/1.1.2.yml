@@ -1,0 +1,14 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: "Lab 1.1.1 S3 Bucket"
+
+Parameters:
+  BucketNameParameter:
+    Type: "String"
+
+Resources:
+  MyS3Bucket:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: !Ref "BucketNameParameter"
