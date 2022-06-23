@@ -10,9 +10,11 @@ I wrote a Python3 script that does the following:
 
 * Prompt the user for an MFA code and validate it
 * Store the credentials in `~/.aws/credentials`
-* Print a message at the end that explains the various ways the credential can be accessed.
+* Print a message at the end that explains the various ways the
+  credential can be accessed.
 
-The credentials can be stored as environment variables, or as a profile that can used via the `--profile` flag within aws CLI commands.
+The credentials can be stored as environment variables, or as a profile
+that can used via the `--profile` flag within aws CLI commands.
 
 ## Question 0.1.1: 2
 
