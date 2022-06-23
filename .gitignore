@@ -11,4 +11,4 @@ __pycache__
 
 .ruby-version
 *.pem
-00-dev-environment/aws-mfa-cli/.venv/
+00-dev-environment/aws-mfa-cli/.venv/*
