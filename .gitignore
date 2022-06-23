@@ -11,8 +11,4 @@ __pycache__
 
 .ruby-version
 *.pem
-<<<<<<< HEAD
-00-dev-environment/aws-mfa-cli/.venv/pyvenv.cfg
-=======
-00-dev-environment/aws-mfa-cli/.venv
->>>>>>> master
+00-dev-environment/aws-mfa-cli/.venv/
