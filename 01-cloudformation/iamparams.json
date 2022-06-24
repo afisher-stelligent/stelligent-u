@@ -2,5 +2,9 @@
     {
         "ParameterKey": "IamUser",
         "ParameterValue": "allen.fisher2"
+    },
+    {
+        "ParameterKey": "IamUser2",
+        "ParameterValue": "allen.fisher3"
     }
 ]
