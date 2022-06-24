@@ -1,9 +1,9 @@
 ---
 AWSTemplateFormatVersion: "2010-09-09"
 
-Parameters:
-  IamUser:
-    Type: "String"
+# Parameters:
+#   IamUser:
+#     Type: "String"
 
 Resources:
   MyIAMManagedPolicy:
@@ -22,7 +22,7 @@ Resources:
   MyIAMUser:
     Type: AWS::IAM::User
     Properties:
-      UserName: !Ref IamUser
+      UserName: "{{resolve:ssm:/allen.fisher/UserName:1}}"
       ManagedPolicyArns:
         - !Ref MyIAMManagedPolicy
 
