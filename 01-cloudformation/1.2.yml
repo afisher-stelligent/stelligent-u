@@ -1,0 +1,27 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+  UserName:
+    Type: "String"
+
+Resources:
+  MyIAMManagedPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: "Read Only Policy for S3 Buckets"
+      ManagedPolicyName: "ReadOnlyS3"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Action:
+              - "S3:Get*"
+              - "S3:List*"
+            Resource: "*"
+  MyIAMUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: !Ref UserName
+      Policies:
+        - !Ref MyIAMManagedPolicy
