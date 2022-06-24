@@ -1,0 +1,10 @@
+[
+    {
+        "ParameterKey": "BucketNameParameter",
+        "ParameterValue": "allenfmodule01bucket"
+    },
+    {
+        "ParameterKey": "PreferredRegion",
+        "ParameterValue": "us-west-1"
+    }
+]

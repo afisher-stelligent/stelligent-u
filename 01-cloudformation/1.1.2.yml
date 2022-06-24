@@ -1,0 +1,26 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: "Lab 1.1.1 S3 Bucket"
+
+Parameters:
+  BucketNameParameter:
+    Type: "String"
+  PreferredRegion:
+    Type: "String"
+
+Resources:
+  MyS3Bucket:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName:
+        !If [
+          IsPreferredRegion,
+          !Join ["-", [!Ref "BucketNameParameter", !Ref AWS::AccountId]],
+          !Join ["-", [!Ref "BucketNameParameter", !Ref AWS::Region]],
+        ]
+
+Conditions:
+  IsPreferredRegion: !Equals
+    - !Ref AWS::Region
+    - !Ref "PreferredRegion"

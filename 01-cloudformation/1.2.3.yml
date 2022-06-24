@@ -1,0 +1,16 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+  IamUser:
+    Type: "String"
+  IamUser2:
+    Type: "String"
+
+Resources:
+  MyIAMUser2:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: !Ref IamUser2
+      ManagedPolicyArns:
+        - !ImportValue S3ReadOnlyPolicy
