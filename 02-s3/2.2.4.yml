@@ -31,4 +31,5 @@ Resources:
             Effect: Deny
             Resource: !Join ["/", [!Ref MyBucket, "private.txt"]]
             NotPrincipal:
-              AWS: !Ref IAMUserArn
+              AWS:
+                - !Ref IAMUserArn
