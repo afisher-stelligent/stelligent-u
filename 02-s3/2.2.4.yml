@@ -1,6 +1,10 @@
 ---
 AWSTemplateFormatVersion: "2010-09-09"
 
+Parameters:
+  IAMUserArn:
+    Type: String
+
 Resources:
   MyBucket:
     Type: AWS::S3::Bucket
@@ -22,8 +26,9 @@ Resources:
             Effect: Allow
             Principal: "*"
           - Action:
-              - "*"
+              - "s3:*"
             Sid: "NoAccessPrivate"
             Effect: Deny
             Resource: !Join ["/", [!Ref MyBucket, "private.txt"]]
-            Principal: <???>
+            NotPrincipal:
+              AWS: !Ref IAMUserArn
