@@ -1,0 +1,29 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Resources:
+  MyBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: "allen-f-stelligent-u-223"
+      AccessControl: "BucketOwnerFullControl"
+
+  MyBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref MyBucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action:
+              - "s3:GetObject"
+              - "s3:GetObjectVersion"
+            Sid: "PublicRead"
+            Effect: Allow
+            Principal: "*"
+          - Action:
+              - "*"
+            Sid: "NoAccessPrivate"
+            Effect: Deny
+            Resource: !Join ["/", [!Ref MyBucket, "private.txt"]]
+            Principal: <???>
