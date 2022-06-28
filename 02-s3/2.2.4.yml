@@ -24,12 +24,13 @@ Resources:
               - "s3:GetObjectVersion"
             Sid: "PublicRead"
             Effect: Allow
+            Resource: "*"
             Principal: "*"
           - Action:
               - "s3:*"
             Sid: "NoAccessPrivate"
             Effect: Deny
-            Resource: !Join ["/", [!Ref MyBucket, "private.txt"]]
+            Resource: !Sub ${MyBucket.Arn}/private.txt
             NotPrincipal:
               AWS:
                 - !Ref IAMUserArn
