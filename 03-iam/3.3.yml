@@ -1,0 +1,39 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Resources:
+  MyBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: "allen-stelligent-u3.1a"
+  MyBucket2:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: "allen-stelligent-u3.1b"
+  MyRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub "${AWS::AccountId}"
+            Action:
+              - "sts:AssumeRole"
+      Policies:
+        - PolicyName: BucketAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: "*"
+                Resource: !GetAtt MyBucket.Arn
+              - Effect: Allow
+                Action:
+                  - "s3:Get*"
+                  - "s3:List*"
+                Resource: !GetAtt MyBucket2.Arn
+                Condition:
+                  StringEquals:
+                    s3:prefix: "lebowski"
