@@ -50,3 +50,10 @@ You get a `An error occurred (NoSuchBucketPolicy) when calling the GetBucketPoli
 How do the default permissions differ from the policy you're setting?
 
 By default all objects in a bucket are private.
+
+## Lab 2.3
+
+### Question: Deleting Tags
+Can you change a single tag on a bucket or object, or do you have to change all its tags at once?
+
+Tags must be changed as a set from the cli.
