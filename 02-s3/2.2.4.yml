@@ -30,7 +30,7 @@ Resources:
               - "s3:*"
             Sid: "NoAccessPrivate"
             Effect: Deny
-            Resource: !Sub ${MyBucket.Arn}/private.txt
+            Resource: !Sub "arn:aws:s3:::${MyBucket}/private.txt"
             NotPrincipal:
               AWS:
                 - !Ref IAMUserArn
