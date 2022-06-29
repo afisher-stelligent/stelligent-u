@@ -65,7 +65,7 @@ Resources:
     DependsOn: IgAttachment
     Properties:
       RouteTableId: !Ref AllenRouteTable
-      GatewayId: !Ref AllenIG
+      GatewayId: !GetAtt AllenIG.InternetGatewayId
       DestinationCidrBlock: 0.0.0.0/0
 
 Outputs:
