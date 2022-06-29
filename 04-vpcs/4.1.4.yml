@@ -18,6 +18,8 @@ Resources:
       KeyName: !Ref KeyPairName
       AvailabilityZone: us-west-1a
       SubnetId: !ImportValue AllenLab4SubnetId
+      SecurityGroupIds:
+        - !GetAtt MySecurityGroup.GroupId
       Tags:
         - Key: user
           Value: allen.fisher
@@ -25,3 +27,18 @@ Resources:
           Value: "4"
         - Key: "stelligent-u-lab"
           Value: "4.1.4"
+  MySecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Allen F Lab 4 SG"
+      GroupName: AllenFSg
+      VpcId: !ImportValue AllenLab4VPCId
+      SecurityGroupIngress:
+        - IpProtocol: icmp
+          FromPort: 8
+          ToPort: -1
+          CidrIp: 10.0.43.0/24
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 10.0.43.0/24

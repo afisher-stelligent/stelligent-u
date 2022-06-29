@@ -60,6 +60,14 @@ Resources:
           Value: "4.1.2"
       VpcId: !Ref AllenVPC
 
+  AllenRoute:
+    Type: AWS::EC2::Route
+    DependsOn: IgAttachment
+    Properties:
+      RouteTableId: !Ref AllenRouteTable
+      GatewayId: !Ref AllenIG
+      DestinationCidrBlock: 0.0.0.0/0
+
 Outputs:
   VPCId:
     Description: "VPC ID for Allen Module 04"
