@@ -30,6 +30,35 @@ Resources:
         - Key: "stelligent-u-lab"
           Value: "4.1.1"
 
+  AllenIG:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: user
+          Value: allen.fisher
+        - Key: "stelligent-u-lesson"
+          Value: "4"
+        - Key: "stelligent-u-lab"
+          Value: "4.1.2"
+
+  IgAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref AllenIG
+      VpcId: !Ref AllenVPC
+
+  AllenRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags:
+        - Key: user
+          Value: allen.fisher
+        - Key: "stelligent-u-lesson"
+          Value: "4"
+        - Key: "stelligent-u-lab"
+          Value: "4.1.2"
+      VpcId: !Ref AllenVPC
+
 Outputs:
   VPCId:
     Description: "VPC ID for Allen Module 04"
