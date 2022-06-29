@@ -20,8 +20,9 @@ Resources:
   AllenSubnet:
     Type: AWS::EC2::Subnet
     Properties:
-      CidrBlock: 10.0.1.0/24
+      CidrBlock: 10.0.43.0/24
       VpcId: !Ref AllenVPC
+      AvailabilityZone: us-west-1a
       Tags:
         - Key: user
           Value: allen.fisher
@@ -63,6 +64,10 @@ Outputs:
   VPCId:
     Description: "VPC ID for Allen Module 04"
     Value: !Ref AllenVPC
+    Export:
+      Name: AllenLab4VPCId
   SubnetId:
     Description: "SubnetID for Allen Module 04"
     Value: !Ref AllenSubnet
+    Export:
+      Name: AllenLab4SubnetId

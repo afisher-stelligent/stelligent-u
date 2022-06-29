@@ -1,0 +1,27 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+  AmiID:
+    Type: String
+  InstType:
+    Type: String
+  KeyPairName:
+    Type: String
+
+Resources:
+  MyEc2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstType
+      ImageId: !Ref AmiID
+      KeyName: !Ref KeyPairName
+      AvailabilityZone: us-west-1a
+      SubnetId: !ImportValue AllenLab4SubnetId
+      Tags:
+        - Key: user
+          Value: allen.fisher
+        - Key: "stelligent-u-lesson"
+          Value: "4"
+        - Key: "stelligent-u-lab"
+          Value: "4.1.4"
