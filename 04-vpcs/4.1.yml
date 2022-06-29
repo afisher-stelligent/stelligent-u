@@ -1,0 +1,39 @@
+---
+"AWSTemplateFormatVersion": "2010-09-09"
+
+Parameters:
+  MyCidrBlock:
+    Type: String
+
+Resources:
+  AllenVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref MyCidrBlock
+      Tags:
+        - Key: user
+          Value: allen.fisher
+        - Key: "stelligent-u-lesson"
+          Value: "4"
+        - Key: "stelligent-u-lab"
+          Value: "4.1.1"
+  AllenSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.1.0/24
+      VpcId: !Ref AllenVPC
+      Tags:
+        - Key: user
+          Value: allen.fisher
+        - Key: "stelligent-u-lesson"
+          Value: "4"
+        - Key: "stelligent-u-lab"
+          Value: "4.1.1"
+
+Outputs:
+  VPCId:
+    Description: "VPC ID for Allen Module 04"
+    Value: !Ref AllenVPC
+  SubnetId:
+    Description: "SubnetID for Allen Module 04"
+    Value: !Ref AllenSubnet
