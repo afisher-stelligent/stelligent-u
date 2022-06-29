@@ -62,11 +62,17 @@ Resources:
 
   AllenRoute:
     Type: AWS::EC2::Route
-    DependsOn: IgAttachment
+    DependsOn: AllenIG
     Properties:
       RouteTableId: !Ref AllenRouteTable
-      GatewayId: !GetAtt AllenIG.InternetGatewayId
       DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref AllenIG
+
+  RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref AllenRouteTable
+      SubnetId: !Ref AllenSubnet
 
 Outputs:
   VPCId:

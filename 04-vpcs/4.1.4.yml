@@ -36,12 +36,12 @@ Resources:
       SecurityGroupIngress:
         - IpProtocol: icmp
           FromPort: 8
-          ToPort: -1
-          CidrIp: 10.0.43.0/24
+          ToPort: 0
+          CidrIp: 0.0.0.0/0
         - IpProtocol: tcp
           FromPort: 22
           ToPort: 22
-          CidrIp: 10.0.43.0/24
+          CidrIp: 0.0.0.0/0
   MyEIP:
     Type: AWS::EC2::EIP
     Properties:
