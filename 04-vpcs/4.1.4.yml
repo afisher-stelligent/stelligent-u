@@ -42,3 +42,15 @@ Resources:
           FromPort: 22
           ToPort: 22
           CidrIp: 10.0.43.0/24
+  MyEIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      InstanceId: !Ref MyEc2Instance
+
+Outputs:
+  PublicIP:
+    Description: "The public IP of this instance"
+    Value: !Ref MyEIP
+    Export:
+      Name: MyPublicIPAddress
