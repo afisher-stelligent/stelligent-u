@@ -27,6 +27,25 @@ Resources:
           Value: "4"
         - Key: "stelligent-u-lab"
           Value: "4.1.4"
+
+  MyPrivateEc2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstType
+      ImageId: !Ref AmiID
+      KeyName: !Ref KeyPairName
+      AvailabilityZone: us-west-1a
+      SubnetId: !ImportValue AllenLab4PrivateSubnetId
+      SecurityGroupIds:
+        - !GetAtt MySecurityGroup.GroupId
+      Tags:
+        - Key: user
+          Value: allen.fisher
+        - Key: "stelligent-u-lesson"
+          Value: "4"
+        - Key: "stelligent-u-lab"
+          Value: "4.1.7"
+
   MySecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:

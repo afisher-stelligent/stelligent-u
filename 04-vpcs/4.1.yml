@@ -17,7 +17,7 @@ Resources:
           Value: "4"
         - Key: "stelligent-u-lab"
           Value: "4.1.1"
-  AllenSubnet:
+  PublicSubnet:
     Type: AWS::EC2::Subnet
     Properties:
       CidrBlock: 10.0.43.0/24
@@ -30,6 +30,20 @@ Resources:
           Value: "4"
         - Key: "stelligent-u-lab"
           Value: "4.1.1"
+
+  PrivateSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.44.0/24
+      VpcId: !Ref AllenVPC
+      AvailabilityZone: us-west-1a
+      Tags:
+        - Key: user
+          Value: allen.fisher
+        - Key: "stelligent-u-lesson"
+          Value: "4"
+        - Key: "stelligent-u-lab"
+          Value: "4.1.7"
 
   AllenIG:
     Type: AWS::EC2::InternetGateway
@@ -60,19 +74,54 @@ Resources:
           Value: "4.1.2"
       VpcId: !Ref AllenVPC
 
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags:
+        - Key: user
+          Value: allen.fisher
+        - Key: "stelligent-u-lesson"
+          Value: "4"
+        - Key: "stelligent-u-lab"
+          Value: "4.1.7"
+      VpcId: !Ref AllenVPC
+
   AllenRoute:
     Type: AWS::EC2::Route
-    DependsOn: AllenIG
     Properties:
       RouteTableId: !Ref AllenRouteTable
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref AllenIG
 
+  NatRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref AllenNatGateway
+
   RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       RouteTableId: !Ref AllenRouteTable
-      SubnetId: !Ref AllenSubnet
+      SubnetId: !Ref PublicSubnet
+
+  NatRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref PrivateSubnet
+
+  NatEIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+  AllenNatGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatEIP.AllocationId
+      SubnetId: !Ref PublicSubnet
 
 Outputs:
   VPCId:
@@ -82,6 +131,11 @@ Outputs:
       Name: AllenLab4VPCId
   SubnetId:
     Description: "SubnetID for Allen Module 04"
-    Value: !Ref AllenSubnet
+    Value: !Ref PublicSubnet
     Export:
       Name: AllenLab4SubnetId
+  PrivateSubnetId:
+    Description: "Private SubnetID for Allen Module 04"
+    Value: !Ref PrivateSubnet
+    Export:
+      Name: AllenLab4PrivateSubnetId
