@@ -123,6 +123,98 @@ Resources:
       AllocationId: !GetAtt NatEIP.AllocationId
       SubnetId: !Ref PublicSubnet
 
+  PublicNacl:
+    Type: AWS::EC2::NetworkAcl
+    Properties:
+      Tags:
+        - Key: user
+          Value: allen.fisher
+        - Key: "stelligent-u-lesson"
+          Value: "4"
+        - Key: "stelligent-u-lab"
+          Value: "4.1.8"
+      VpcId: !Ref AllenVPC
+
+  PublicNaclEntry:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      CidrBlock: 47.158.220.84/32
+      Egress: false
+      NetworkAclId: !GetAtt PublicNacl.Id
+      PortRange:
+        From: 22
+        To: 22
+      Protocol: 6
+      RuleAction: Allow
+      RuleNumber: 200
+
+  PrivateNacl:
+    Type: AWS::EC2::NetworkAcl
+    Properties:
+      Tags:
+        - Key: user
+          Value: allen.fisher
+        - Key: "stelligent-u-lesson"
+          Value: "4"
+        - Key: "stelligent-u-lab"
+          Value: "4.1.8"
+      VpcId: !Ref AllenVPC
+
+  PrivateNaclEntrySsh:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      CidrBlock: 10.0.43.0/24
+      Egress: false
+      NetworkAclId: !GetAtt PrivateNacl.Id
+      PortRange:
+        From: 22
+        To: 22
+      Protocol: 6
+      RuleAction: Allow
+      RuleNumber: 200
+
+  PrivateNaclEntryPing:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      CidrBlock: 10.0.43.0/24
+      Egress: false
+      NetworkAclId: !GetAtt PrivateNacl.Id
+      PortRange:
+        From: 8
+        To: 0
+      Protocol: 1
+      Icmp:
+        Code: -1
+        Type: 8
+      RuleAction: Allow
+      RuleNumber: 201
+
+  PrivateNaclEntryHttp:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      CidrBlock: 10.0.43.0/24
+      Egress: false
+      NetworkAclId: !GetAtt PrivateNacl.Id
+      PortRange:
+        From: 80
+        To: 80
+      Protocol: 6
+      RuleAction: Allow
+      RuleNumber: 202
+
+  PrivateNaclEntryEgress:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      CidrBlock: 10.0.43.0/24
+      Egress: true
+      NetworkAclId: !GetAtt PrivateNacl.Id
+      PortRange:
+        From: -1
+        To: -1
+      Protocol: -1
+      RuleAction: Allow
+      RuleNumber: 203
+
 Outputs:
   VPCId:
     Description: "VPC ID for Allen Module 04"
