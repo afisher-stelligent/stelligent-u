@@ -12,7 +12,7 @@ Resources:
     Type: AWS::EC2::LaunchTemplate
     Properties:
       LaunchTemplateData:
-        KeyName: allenflab4
+        KeyName: allenF_2022_07_05
         InstanceType: t3.micro
         SecurityGroupIds:
           - !ImportValue AllenMod5Sg
