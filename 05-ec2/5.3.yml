@@ -1,0 +1,69 @@
+---
+"AWSTemplateFormatVersion": "2010-09-09"
+
+Parameters:
+  LinuxAmi:
+    Type: String
+
+Resources:
+  MyLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateData:
+        KeyName: allenF_2022_07_05
+        InstanceType: t3.micro
+        SecurityGroupIds:
+          - !ImportValue AllenMod5Sg
+        TagSpecifications:
+          - ResourceType: instance
+            Tags:
+              - Key: user
+                Value: allen.fisher
+              - Key: "stelligent-u-lesson"
+                Value: "5"
+
+  MyLinuxInstance52:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref LinuxAmi
+      AvailabilityZone: us-west-1a
+      SubnetId: !ImportValue AllenLab5PublicSubnetId
+      IamInstanceProfile: !Ref MyInstanceProfile
+      LaunchTemplate:
+        LaunchTemplateId: !Ref MyLaunchTemplate
+        Version: "1"
+
+  MyCloudWatchRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub "${AWS::AccountId}"
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
+  
+  MyInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties: 
+      InstanceProfileName: cloudwatch
+      Path: /
+      Roles: 
+       - !Ref MyCloudWatchRole
+
+  MyEIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      InstanceId: !Ref MyLinuxInstance52
+
+Outputs:
+  EIP:
+    Description: "Public IP for Instance"
+    Value: !Ref MyEIP
+    Export:
+      Name: Lab52EIP
