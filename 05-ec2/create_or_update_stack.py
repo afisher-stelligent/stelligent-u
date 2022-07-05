@@ -41,12 +41,6 @@ if __name__ == '__main__':
     
     cf = boto3.client('cloudformation', config=config)
 
-    params = {
-        'StackName': args.stack_name,
-        'TemplateBody': _process_template(args.template_file),
-        'Parameters': _process_parameters(args.parameter_file),
-    } 
-
     if _stack_exists(args.stack_name):
         print(f'Updating {args.stack_name}')
         resp = cf.update_stack(

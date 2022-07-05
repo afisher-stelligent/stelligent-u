@@ -1,7 +1,7 @@
 [
     {
         "ParameterKey": "WindowsAmi",
-        "ParameterValue": "ami-002eb2797db5ae1dc"
+        "ParameterValue": "ami-0d3f2a954c3c6c9e3"
     },
     {
         "ParameterKey": "LinuxAmi",
