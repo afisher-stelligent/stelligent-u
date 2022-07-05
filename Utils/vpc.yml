@@ -218,22 +218,22 @@ Resources:
 
 Outputs:
   VPCId:
-    Description: !Sub "VPC ID for Allen Module ${ModuleNumber}"
+    # Description: !Sub "VPC ID for Allen Module ${ModuleNumber}"
     Value: !Ref AllenVPC
     Export:
       Name: !Sub "AllenModule${ModuleNumber}VPCId"
   PublicSubnetId:
-    Description: !Sub "Public SubnetID for Allen Module ${ModuleNumber}"
+    # Description: !Sub "Public SubnetID for Allen Module ${ModuleNumber}"
     Value: !Ref PublicSubnet
     Export:
       Name: !Sub "AllenModule${ModuleNumber}PublicSubnetId"
   PrivateSubnetId:
-    Description: !Sub "Private SubnetID for Allen Module ${ModuleNumber}"
+    # Description: !Sub "Private SubnetID for Allen Module ${ModuleNumber}"
     Value: !Ref PrivateSubnet
     Export:
       Name: !Sub "AllenModule${ModuleNumber}PrivateSubnetId"
   SecurityGroupId:
-    Description: !Sub "Security Group for Allen Module ${ModuleNumber}"
+    # Description: !Sub "Security Group for Allen Module ${ModuleNumber}"
     Value: !Ref MySecurityGroup
     Export:
       Name: !Sub "AllenModule${ModuleNumber}SecurityGroup"
