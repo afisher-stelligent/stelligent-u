@@ -48,13 +48,13 @@ if __name__ == '__main__':
     } 
 
     if _stack_exists(args.stack_name):
-            print(f'Updating {args.stack_name}')
-            resp = cf.update_stack(
-                StackName=args.stack_name,
-                TemplateBody=_process_template(args.template_file),
-                Parameters=_process_parameters(args.parameter_file)
-            )
-            waiter = cf.get_waiter('stack_update_complete')
+        print(f'Updating {args.stack_name}')
+        resp = cf.update_stack(
+            StackName=args.stack_name,
+            TemplateBody=_process_template(args.template_file),
+            Parameters=_process_parameters(args.parameter_file)
+        )
+        waiter = cf.get_waiter('stack_update_complete')
     else:
         print(f'Creating {args.stack_name}')
         resp = cf.create_stack(
