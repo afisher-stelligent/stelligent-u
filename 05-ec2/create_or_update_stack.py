@@ -46,7 +46,8 @@ if __name__ == '__main__':
         resp = cf.update_stack(
             StackName=args.stack_name,
             TemplateBody=_process_template(args.template_file),
-            Parameters=_process_parameters(args.parameter_file)
+            Parameters=_process_parameters(args.parameter_file),
+            Capabilities=['CAPABILITY_IAM']
         )
         waiter = cf.get_waiter('stack_update_complete')
     else:
@@ -54,7 +55,8 @@ if __name__ == '__main__':
         resp = cf.create_stack(
             StackName=args.stack_name,
             TemplateBody=_process_template(args.template_file),
-            Parameters=_process_parameters(args.parameter_file)
+            Parameters=_process_parameters(args.parameter_file),
+            Capabilities=['CAPABILITY_IAM']
         )
         waiter = cf.get_waiter('stack_create_complete')
         
