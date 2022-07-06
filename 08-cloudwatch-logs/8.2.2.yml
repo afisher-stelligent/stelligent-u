@@ -1,0 +1,14 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Resources:
+  MyBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: "allen-f-stelligent-u-223"
+      AccessControl: "BucketOwnerFullControl"
+      Tags:
+        - Key: user
+          Value: allen.fisher
+        - Key: "stelligent-u-lesson"
+          Value: "8"
