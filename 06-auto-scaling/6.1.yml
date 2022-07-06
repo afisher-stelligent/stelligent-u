@@ -12,6 +12,7 @@ Resources:
       LaunchTemplateData:
         KeyName: allenF_2022_07_05
         InstanceType: t2.micro
+        ImageId: !Ref LinuxAmi
         SecurityGroupIds:
           - !ImportValue AllenModule06SecurityGroup
         TagSpecifications:
@@ -22,25 +23,38 @@ Resources:
               - Key: "stelligent-u-lesson"
                 Value: "6"
 
-  MyLinuxInstance61:
-    Type: AWS::EC2::Instance
+  # MyLinuxInstance61:
+  #   Type: AWS::EC2::Instance
+  #   Properties:
+  #     ImageId: !Ref LinuxAmi
+  #     AvailabilityZone: us-west-1a
+  #     SubnetId: !ImportValue AllenModule06PublicSubnetId
+  #     LaunchTemplate:
+  #       LaunchTemplateId: !Ref MyLaunchTemplate
+  #       Version: "1"
+
+  MyLaunchConfiguration:
+    Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
       ImageId: !Ref LinuxAmi
-      AvailabilityZone: us-west-1a
-      SubnetId: !ImportValue AllenModule06PublicSubnetId
-      LaunchTemplate:
-        LaunchTemplateId: !Ref MyLaunchTemplate
-        Version: "1"
-  
-  MyEIP:
-    Type: AWS::EC2::EIP
-    Properties:
-      Domain: vpc
-      InstanceId: !Ref MyLinuxInstance61
+      InstanceType: t2.micro
 
-Outputs:
-  EIP:
-    Description: "Public IP for Instance"
-    Value: !Ref MyEIP
-    Export:
-      Name: Lab61EIP
+  MyAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties: 
+      AutoScalingGroupName: "AllenFModule612ASG"
+      AvailabilityZones:
+        - "us-west-1a"
+      MaxSize: "1"
+      MinSize: "1"
+      DesiredCapacity: "1"
+      LaunchTemplate:
+        Version: "1"
+        LaunchTemplateId: !Ref MyLaunchTemplate
+      Tags:
+        - Key: user
+          Value: allen.fisher
+          PropagateAtLaunch: true
+        - Key: "stelligent-u-lesson"
+          Value: "6"
+          PropagateAtLaunch: true
