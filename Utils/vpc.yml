@@ -1,6 +1,10 @@
 ---
 "AWSTemplateFormatVersion": "2010-09-09"
 
+Parameters:
+  ModuleNumber:
+    Type: String
+
 Resources:
   AllenVPC:
     Type: AWS::EC2::VPC
@@ -10,7 +14,7 @@ Resources:
         - Key: user
           Value: allen.fisher
         - Key: "stelligent-u-lesson"
-          Value: "5"
+          Value: !Ref ModuleNumber
 
   PublicSubnet:
     Type: AWS::EC2::Subnet
@@ -22,7 +26,7 @@ Resources:
         - Key: user
           Value: allen.fisher
         - Key: "stelligent-u-lesson"
-          Value: "5"
+          Value: !Ref ModuleNumber
 
   PrivateSubnet:
     Type: AWS::EC2::Subnet
@@ -34,7 +38,7 @@ Resources:
         - Key: user
           Value: allen.fisher
         - Key: "stelligent-u-lesson"
-          Value: "5"
+          Value: !Ref ModuleNumber
 
   AllenIG:
     Type: AWS::EC2::InternetGateway
@@ -43,7 +47,7 @@ Resources:
         - Key: user
           Value: allen.fisher
         - Key: "stelligent-u-lesson"
-          Value: "5"
+          Value: !Ref ModuleNumber
 
   IgAttachment:
     Type: AWS::EC2::VPCGatewayAttachment
@@ -58,7 +62,7 @@ Resources:
         - Key: user
           Value: allen.fisher
         - Key: "stelligent-u-lesson"
-          Value: "5"
+          Value: !Ref ModuleNumber
       VpcId: !Ref AllenVPC
 
   PrivateRouteTable:
@@ -68,7 +72,7 @@ Resources:
         - Key: user
           Value: allen.fisher
         - Key: "stelligent-u-lesson"
-          Value: "5"
+          Value: !Ref ModuleNumber
       VpcId: !Ref AllenVPC
 
   AllenRoute:
@@ -115,7 +119,7 @@ Resources:
         - Key: user
           Value: allen.fisher
         - Key: "stelligent-u-lesson"
-          Value: "5"
+          Value: !Ref ModuleNumber
       VpcId: !Ref AllenVPC
 
   PublicNaclEntry:
@@ -138,7 +142,7 @@ Resources:
         - Key: user
           Value: allen.fisher
         - Key: "stelligent-u-lesson"
-          Value: "5"
+          Value: !Ref ModuleNumber
       VpcId: !Ref AllenVPC
 
   PrivateNaclEntrySsh:
@@ -199,9 +203,9 @@ Resources:
   MySecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: "Allen F Lab 5 SG"
+      GroupDescription: !Sub "Allen F Module ${ModuleNumber} SG"
       GroupName: AllenFSg
-      VpcId: !GetAtt AllenVPC.VpcId
+      VpcId: !Ref AllenVPC
       SecurityGroupIngress:
         - IpProtocol: icmp
           FromPort: 8
@@ -214,23 +218,22 @@ Resources:
 
 Outputs:
   VPCId:
-    Description: "VPC ID for Allen Module 05"
+    # Description: !Sub "VPC ID for Allen Module ${ModuleNumber}"
     Value: !Ref AllenVPC
     Export:
-      Name: AllenLab5VpcId
+      Name: !Sub "AllenModule${ModuleNumber}VPCId"
   PublicSubnetId:
-    Description: "Public SubnetID for Allen Module 05"
+    # Description: !Sub "Public SubnetID for Allen Module ${ModuleNumber}"
     Value: !Ref PublicSubnet
     Export:
-      Name: AllenLab5PublicSubnetId
+      Name: !Sub "AllenModule${ModuleNumber}PublicSubnetId"
   PrivateSubnetId:
-    Description: "Private SubnetID for Allen Module 05"
+    # Description: !Sub "Private SubnetID for Allen Module ${ModuleNumber}"
     Value: !Ref PrivateSubnet
     Export:
-      Name: AllenLab5PrivateSubnetId
+      Name: !Sub "AllenModule${ModuleNumber}PrivateSubnetId"
   SecurityGroupId:
-    Description: "Security Group for Allen Module 05"
+    # Description: !Sub "Security Group for Allen Module ${ModuleNumber}"
     Value: !Ref MySecurityGroup
     Export:
-      Name: AllenMod5Sg
-
+      Name: !Sub "AllenModule${ModuleNumber}SecurityGroup"
