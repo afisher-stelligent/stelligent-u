@@ -11,10 +11,8 @@ Resources:
     Properties:
       LaunchTemplateData:
         KeyName: allenF_2022_07_05
-        InstanceType: t2.micro
+        InstanceType: t2.small
         ImageId: !Ref LinuxAmi
-        SecurityGroupIds:
-          - !ImportValue AllenModule06SecurityGroup
         TagSpecifications:
           - ResourceType: instance
             Tags:
@@ -22,22 +20,6 @@ Resources:
                 Value: allen.fisher
               - Key: "stelligent-u-lesson"
                 Value: "6"
-
-  # MyLinuxInstance61:
-  #   Type: AWS::EC2::Instance
-  #   Properties:
-  #     ImageId: !Ref LinuxAmi
-  #     AvailabilityZone: us-west-1a
-  #     SubnetId: !ImportValue AllenModule06PublicSubnetId
-  #     LaunchTemplate:
-  #       LaunchTemplateId: !Ref MyLaunchTemplate
-  #       Version: "1"
-
-  MyLaunchConfiguration:
-    Type: AWS::AutoScaling::LaunchConfiguration
-    Properties:
-      ImageId: !Ref LinuxAmi
-      InstanceType: t2.micro
 
   MyAutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
@@ -48,8 +30,10 @@ Resources:
       MaxSize: "1"
       MinSize: "1"
       DesiredCapacity: "1"
+      VPCZoneIdentifier: 
+        - !ImportValue AllenModule08PrivateSubnetId
       LaunchTemplate:
-        Version: "1"
+        Version: !GetAtt MyLaunchTemplate.LatestVersionNumber
         LaunchTemplateId: !Ref MyLaunchTemplate
       Tags:
         - Key: user
