@@ -11,7 +11,7 @@ Resources:
     Properties:
       LaunchTemplateData:
         KeyName: allenF_2022_07_05
-        InstanceType: t2.small
+        InstanceType: t2.medium
         ImageId: !Ref LinuxAmi
         TagSpecifications:
           - ResourceType: instance
@@ -23,8 +23,10 @@ Resources:
 
   MyAutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
+    UpdatePolicy:
+      AutoScalingReplacingUpdate:
+        WillReplace: true
     Properties: 
-      AutoScalingGroupName: "AllenFModule612ASG"
       AvailabilityZones:
         - "us-west-1a"
       MaxSize: "1"
