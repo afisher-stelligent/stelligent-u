@@ -1,18 +1,27 @@
 ---
 AWSTemplateFormatVersion: '2010-09-09'
 Resources:
+  MyAlbListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - TargetGroupArn: !Ref MyTargetGroup
+          Type: forward
+      LoadBalancerArn: !Ref MyAlb
+      Port: 80
+      Protocol: HTTP
+
   MyTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties: 
       HealthCheckEnabled: true
       HealthCheckPath: "/index.html"
+      HealthCheckPort: traffic-port
       HealthCheckProtocol: HTTP
       UnhealthyThresholdCount: 2
       VpcId: !ImportValue AllenModule07VPCId
       Protocol: HTTP
-      TargetType: alb
-      Targets:
-        - Id: !Ref MyAlb
+      Port: 80
   
   MyAlb:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer

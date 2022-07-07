@@ -1,6 +1,7 @@
 ---
 "AWSTemplateFormatVersion": "2010-09-09"
 
+
 Parameters:
   ModuleNumber:
     Type: String
@@ -16,7 +17,7 @@ Resources:
         - Key: "stelligent-u-lesson"
           Value: !Ref ModuleNumber
 
-  PublicSubnet:
+  PublicSubnet1:
     Type: AWS::EC2::Subnet
     Properties:
       CidrBlock: 10.0.43.0/24
@@ -27,11 +28,23 @@ Resources:
           Value: allen.fisher
         - Key: "stelligent-u-lesson"
           Value: !Ref ModuleNumber
-
-  PrivateSubnet:
+    
+  PublicSubnet2:
     Type: AWS::EC2::Subnet
     Properties:
       CidrBlock: 10.0.44.0/24
+      VpcId: !Ref AllenVPC
+      AvailabilityZone: us-west-1b
+      Tags:
+        - Key: user
+          Value: allen.fisher
+        - Key: "stelligent-u-lesson"
+          Value: !Ref ModuleNumber
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.45.0/24
       VpcId: !Ref AllenVPC
       AvailabilityZone: us-west-1a
       Tags:
@@ -40,6 +53,17 @@ Resources:
         - Key: "stelligent-u-lesson"
           Value: !Ref ModuleNumber
 
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.46.0/24
+      VpcId: !Ref AllenVPC
+      AvailabilityZone: us-west-1b
+      Tags:
+        - Key: user
+          Value: allen.fisher
+        - Key: "stelligent-u-lesson"
+          Value: !Ref ModuleNumber
   AllenIG:
     Type: AWS::EC2::InternetGateway
     Properties:
@@ -55,7 +79,7 @@ Resources:
       InternetGatewayId: !Ref AllenIG
       VpcId: !Ref AllenVPC
 
-  AllenRouteTable:
+  PublicRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
       Tags:
@@ -65,7 +89,17 @@ Resources:
           Value: !Ref ModuleNumber
       VpcId: !Ref AllenVPC
 
-  PrivateRouteTable:
+  PrivateRouteTable1:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags:
+        - Key: user
+          Value: allen.fisher
+        - Key: "stelligent-u-lesson"
+          Value: !Ref ModuleNumber
+      VpcId: !Ref AllenVPC
+
+  PrivateRouteTable2:
     Type: AWS::EC2::RouteTable
     Properties:
       Tags:
@@ -78,133 +112,162 @@ Resources:
   AllenRoute:
     Type: AWS::EC2::Route
     Properties:
-      RouteTableId: !Ref AllenRouteTable
+      RouteTableId: !Ref PublicRouteTable
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref AllenIG
 
-  NatRoute:
+  NatRoute1:
     Type: AWS::EC2::Route
     Properties:
-      RouteTableId: !Ref PrivateRouteTable
+      RouteTableId: !Ref PrivateRouteTable1
       DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref AllenNatGateway
+      NatGatewayId: !Ref AllenNatGateway1
+  
+  NatRoute2:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable2
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref AllenNatGateway2
 
-  RouteTableAssociation:
+  PublicRouteTableAssociation1:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      RouteTableId: !Ref AllenRouteTable
-      SubnetId: !Ref PublicSubnet
-
-  NatRouteTableAssociation:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet1
+  
+  PublicRouteTableAssociation2:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      RouteTableId: !Ref PrivateRouteTable
-      SubnetId: !Ref PrivateSubnet
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet2
 
-  NatEIP:
+  NatRouteTableAssociation1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable1
+      SubnetId: !Ref PrivateSubnet1
+    
+  NatRouteTableAssociation2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable2
+      SubnetId: !Ref PrivateSubnet2
+
+  NatEIP1:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+  
+  NatEIP2:
     Type: AWS::EC2::EIP
     Properties:
       Domain: vpc
 
-  AllenNatGateway:
+  AllenNatGateway1:
     Type: AWS::EC2::NatGateway
     Properties:
-      AllocationId: !GetAtt NatEIP.AllocationId
-      SubnetId: !Ref PublicSubnet
-
-  PublicNacl:
-    Type: AWS::EC2::NetworkAcl
+      AllocationId: !GetAtt NatEIP1.AllocationId
+      SubnetId: !Ref PublicSubnet1
+  
+  AllenNatGateway2:
+    Type: AWS::EC2::NatGateway
     Properties:
-      Tags:
-        - Key: user
-          Value: allen.fisher
-        - Key: "stelligent-u-lesson"
-          Value: !Ref ModuleNumber
-      VpcId: !Ref AllenVPC
+      AllocationId: !GetAtt NatEIP2.AllocationId
+      SubnetId: !Ref PublicSubnet2
 
-  PublicNaclEntry:
-    Type: AWS::EC2::NetworkAclEntry
-    Properties:
-      CidrBlock: 47.158.220.84/32
-      Egress: false
-      NetworkAclId: !GetAtt PublicNacl.Id
-      PortRange:
-        From: 22
-        To: 22
-      Protocol: 6
-      RuleAction: allow
-      RuleNumber: 200
+  # PublicNacl:
+  #   Type: AWS::EC2::NetworkAcl
+  #   Properties:
+  #     Tags:
+  #       - Key: user
+  #         Value: allen.fisher
+  #       - Key: "stelligent-u-lesson"
+  #         Value: !Ref ModuleNumber
+  #     VpcId: !Ref AllenVPC
 
-  PrivateNacl:
-    Type: AWS::EC2::NetworkAcl
-    Properties:
-      Tags:
-        - Key: user
-          Value: allen.fisher
-        - Key: "stelligent-u-lesson"
-          Value: !Ref ModuleNumber
-      VpcId: !Ref AllenVPC
+  # PublicNaclEntry:
+  #   Type: AWS::EC2::NetworkAclEntry
+  #   Properties:
+  #     CidrBlock: 47.158.220.84/32
+  #     Egress: false
+  #     NetworkAclId: !GetAtt PublicNacl.Id
+  #     PortRange:
+  #       From: 22
+  #       To: 22
+  #     Protocol: 6
+  #     RuleAction: allow
+  #     RuleNumber: 200
 
-  PrivateNaclEntrySsh:
-    Type: AWS::EC2::NetworkAclEntry
-    Properties:
-      CidrBlock: 10.0.43.0/24
-      Egress: false
-      NetworkAclId: !GetAtt PrivateNacl.Id
-      PortRange:
-        From: 22
-        To: 22
-      Protocol: 6
-      RuleAction: allow
-      RuleNumber: 200
+  # PrivateNacl:
+  #   Type: AWS::EC2::NetworkAcl
+  #   Properties:
+  #     Tags:
+  #       - Key: user
+  #         Value: allen.fisher
+  #       - Key: "stelligent-u-lesson"
+  #         Value: !Ref ModuleNumber
+  #     VpcId: !Ref AllenVPC
 
-  PrivateNaclEntryPing:
-    Type: AWS::EC2::NetworkAclEntry
-    Properties:
-      CidrBlock: 10.0.43.0/24
-      Egress: false
-      NetworkAclId: !GetAtt PrivateNacl.Id
-      PortRange:
-        From: 8
-        To: 0
-      Protocol: 1
-      Icmp:
-        Code: -1
-        Type: 8
-      RuleAction: allow
-      RuleNumber: 201
+  # PrivateNaclEntrySsh:
+  #   Type: AWS::EC2::NetworkAclEntry
+  #   Properties:
+  #     CidrBlock: 10.0.43.0/24
+  #     Egress: false
+  #     NetworkAclId: !GetAtt PrivateNacl.Id
+  #     PortRange:
+  #       From: 22
+  #       To: 22
+  #     Protocol: 6
+  #     RuleAction: allow
+  #     RuleNumber: 200
 
-  PrivateNaclEntryHttp:
-    Type: AWS::EC2::NetworkAclEntry
-    Properties:
-      CidrBlock: 10.0.43.0/24
-      Egress: false
-      NetworkAclId: !GetAtt PrivateNacl.Id
-      PortRange:
-        From: 80
-        To: 80
-      Protocol: 6
-      RuleAction: allow
-      RuleNumber: 202
+  # PrivateNaclEntryPing:
+  #   Type: AWS::EC2::NetworkAclEntry
+  #   Properties:
+  #     CidrBlock: 10.0.43.0/24
+  #     Egress: false
+  #     NetworkAclId: !GetAtt PrivateNacl.Id
+  #     PortRange:
+  #       From: 8
+  #       To: 0
+  #     Protocol: 1
+  #     Icmp:
+  #       Code: -1
+  #       Type: 8
+  #     RuleAction: allow
+  #     RuleNumber: 201
 
-  PrivateNaclEntryEgress:
-    Type: AWS::EC2::NetworkAclEntry
-    Properties:
-      CidrBlock: 10.0.43.0/24
-      Egress: true
-      NetworkAclId: !GetAtt PrivateNacl.Id
-      PortRange:
-        From: -1
-        To: -1
-      Protocol: -1
-      RuleAction: allow
-      RuleNumber: 203
+  # PrivateNaclEntryHttp:
+  #   Type: AWS::EC2::NetworkAclEntry
+  #   Properties:
+  #     CidrBlock: 10.0.43.0/24
+  #     Egress: false
+  #     NetworkAclId: !GetAtt PrivateNacl.Id
+  #     PortRange:
+  #       From: 80
+  #       To: 80
+  #     Protocol: 6
+  #     RuleAction: allow
+  #     RuleNumber: 202
+
+  # PrivateNaclEntryEgress:
+  #   Type: AWS::EC2::NetworkAclEntry
+  #   Properties:
+  #     CidrBlock: 10.0.43.0/24
+  #     Egress: true
+  #     NetworkAclId: !GetAtt PrivateNacl.Id
+  #     PortRange:
+  #       From: -1
+  #       To: -1
+  #     Protocol: -1
+  #     RuleAction: allow
+  #     RuleNumber: 203
   
   MySecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: !Sub "Allen F Module ${ModuleNumber} SG"
-      GroupName: AllenFSg
       VpcId: !Ref AllenVPC
       SecurityGroupIngress:
         - IpProtocol: icmp
@@ -218,20 +281,25 @@ Resources:
 
 Outputs:
   VPCId:
-    # Description: !Sub "VPC ID for Allen Module ${ModuleNumber}"
     Value: !Ref AllenVPC
     Export:
       Name: !Sub "AllenModule${ModuleNumber}VPCId"
-  PublicSubnetId:
-    # Description: !Sub "Public SubnetID for Allen Module ${ModuleNumber}"
-    Value: !Ref PublicSubnet
+  PublicSubnetId1:
+    Value: !Ref PublicSubnet1
     Export:
-      Name: !Sub "AllenModule${ModuleNumber}PublicSubnetId"
-  PrivateSubnetId:
-    # Description: !Sub "Private SubnetID for Allen Module ${ModuleNumber}"
-    Value: !Ref PrivateSubnet
+      Name: !Sub "AllenModule${ModuleNumber}PublicSubnetId1"
+  PublicSubnetId2:
+    Value: !Ref PublicSubnet2
     Export:
-      Name: !Sub "AllenModule${ModuleNumber}PrivateSubnetId"
+      Name: !Sub "AllenModule${ModuleNumber}PublicSubnetId2"
+  PrivateSubnetId1:
+    Value: !Ref PrivateSubnet1
+    Export:
+      Name: !Sub "AllenModule${ModuleNumber}PrivateSubnetId1"
+  PrivateSubnetId2:
+    Value: !Ref PrivateSubnet2
+    Export:
+      Name: !Sub "AllenModule${ModuleNumber}PrivateSubnetId2"
   SecurityGroupId:
     # Description: !Sub "Security Group for Allen Module ${ModuleNumber}"
     Value: !Ref MySecurityGroup
