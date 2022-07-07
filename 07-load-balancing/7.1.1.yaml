@@ -20,8 +20,11 @@ Resources:
       HealthCheckProtocol: HTTP
       UnhealthyThresholdCount: 2
       VpcId: !ImportValue AllenModule07VPCId
-      Protocol: HTTP
+      Protocol: TCP
+      TargetType: alb
       Port: 80
+      Targets:
+          - Id: !Ref MyAlb
   
   MyAlb:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer

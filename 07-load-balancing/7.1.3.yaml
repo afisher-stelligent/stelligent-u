@@ -15,21 +15,21 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties: 
       HealthCheckEnabled: true
-      HealthCheckPath: "/BadMojoindex.html"
+      HealthCheckPath: "/index.html"
       HealthCheckPort: traffic-port
       HealthCheckProtocol: HTTP
       HealthyThresholdCount: 2
-      UnhealthyThresholdCount: 3
+      UnhealthyThresholdCount: 2
       HealthCheckIntervalSeconds: 10
       VpcId: !ImportValue AllenModule07VPCId
       Protocol: TCP
-      Port: 80
       TargetType: alb
-      Targets:
-        - Id: !Ref MyAlb
+      Port: 80
       TargetGroupAttributes:
         - Key: deregistration_delay.timeout_seconds
           Value: "20"
+      Targets:
+          - Id: !Ref MyAlb
   
   MyAlb:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
