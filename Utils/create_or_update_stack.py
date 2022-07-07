@@ -10,6 +10,9 @@ def _stack_exists(stack_name):
     for stack in stacks:
         if stack.get('StackStatus') == 'DELETE_COMPLETE':
             continue
+        if stack.get('StackStatus') == "ROLLBACK_COMPLETE" or stack.get('StackStatus') == "UPDATE_ROLLBACK_FAILED":
+            _cleanup_bad_stacks(stack)
+            return False
         if stack_name == stack.get('StackName'):
             return True
     return False
@@ -25,6 +28,10 @@ def _process_parameters(parameter_file):
     with open(args.parameter_file) as f:
         data = json.load(f)
     return data
+
+def _cleanup_bad_stacks(stack_name):
+    pass
+
 
 if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser(description='Create or update a stack using AWS CloudFormation')
