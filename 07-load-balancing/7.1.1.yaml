@@ -1,3 +1,4 @@
+---
 AWSTemplateFormatVersion: '2010-09-09'
 Resources:
   MyTargetGroup:
@@ -5,18 +6,31 @@ Resources:
     Properties: 
       HealthCheckEnabled: true
       HealthCheckPath: "/index.html"
-      HealthCheckProtocol: HTTP
       UnhealthyThresholdCount: 2
-      VpcId: !ImportValue AllenModule08VPCId
+      VpcId: !ImportValue AllenModule07VPCId
       Protocol: HTTP
-      Port: 80
+      TargetType: alb
+      Targets:
+        - Id: !Ref MyAlb
+  
+  MyAlb:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties: 
+      Scheme: internet-facing
+      SecurityGroups: 
+        - !ImportValue AllenModule07SecurityGroup
+      Subnets: 
+        - !ImportValue AllenModule07PublicSubnetId1
+        - !ImportValue AllenModule07PublicSubnetId2
+      Type: application
 
   WebServerAsg:
     Type: 'AWS::AutoScaling::AutoScalingGroup'
     Properties:
       AutoScalingGroupName: 'AutomationBoxes'
       VPCZoneIdentifier:
-        - !ImportValue AllenModule08PublicSubnetId
+        - !ImportValue AllenModule07PublicSubnetId1
+        - !ImportValue AllenModule07PublicSubnetId2
       DesiredCapacity: '3'
       HealthCheckType: 'ELB'
       HealthCheckGracePeriod: 30 
@@ -31,7 +45,7 @@ Resources:
       InstanceType: 't2.micro'
       LaunchConfigurationName: 'SimpleWebServerLC'
       SecurityGroups:
-        - !ImportValue AllenModule08SecurityGroup
+        - !ImportValue AllenModule07SecurityGroup
       UserData: 
         Fn::Base64:
           Fn::Sub: |
