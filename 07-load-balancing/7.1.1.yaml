@@ -6,6 +6,7 @@ Resources:
     Properties: 
       HealthCheckEnabled: true
       HealthCheckPath: "/index.html"
+      HealthCheckProtocol: HTTP
       UnhealthyThresholdCount: 2
       VpcId: !ImportValue AllenModule07VPCId
       Protocol: HTTP
@@ -22,7 +23,6 @@ Resources:
       Subnets: 
         - !ImportValue AllenModule07PublicSubnetId1
         - !ImportValue AllenModule07PublicSubnetId2
-      Type: application
 
   WebServerAsg:
     Type: 'AWS::AutoScaling::AutoScalingGroup'
