@@ -9,14 +9,13 @@ Resources:
           Type: forward
       LoadBalancerArn: !Ref MyAlb
       Port: 80
-      Protocol: HTTP
 
   MyTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties: 
       HealthCheckEnabled: true
       HealthCheckPath: "/index.html"
-      HealthCheckPort: traffic-port
+      HealthCheckPort: "80"
       HealthCheckProtocol: HTTP
       HealthyThresholdCount: 2
       UnhealthyThresholdCount: 2
@@ -25,9 +24,6 @@ Resources:
       Protocol: TCP
       TargetType: alb
       Port: 80
-      TargetGroupAttributes:
-        - Key: deregistration_delay.timeout_seconds
-          Value: "20"
       Targets:
           - Id: !Ref MyAlb
   
