@@ -12,3 +12,5 @@ __pycache__
 .ruby-version
 *.pem
 00-dev-environment/aws-mfa-cli/.venv
+07-load-balancing/my-aws-private.key
+07-load-balancing/my-aws-public.crt

@@ -1,0 +1,118 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  MyAlbListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref MyAlb
+      Port: 80
+      Protocol: "HTTP"
+      DefaultActions: 
+        - Order: 1
+          TargetGroupArn: !Ref MyTargetGroup
+          Type: "forward"
+    
+  MySecureAlbListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref MyAlb
+      Port: 443
+      Protocol: "HTTPS"
+      Certificates:
+        - CertificateArn: arn:aws:acm:us-west-1:324320755747:certificate/6cc8bf7e-1151-4d39-b51a-aca233d367d6
+      SslPolicy: ELBSecurityPolicy-FS-1-2-Res-2020-10
+      DefaultActions: 
+        - Order: 1
+          TargetGroupArn: !Ref MyTargetGroup
+          Type: "forward"
+
+  MyTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties: 
+      HealthCheckEnabled: true
+      HealthCheckPath: "/index.html"
+      HealthCheckPort: "traffic-port"
+      HealthCheckProtocol: HTTP
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 2
+      HealthCheckIntervalSeconds: 30
+      HealthCheckTimeoutSeconds: 5
+      VpcId: !ImportValue AllenModule07VPCId
+      Protocol: HTTP
+      Port: 80
+      Matcher: 
+          HttpCode: "200"
+  
+  MyAlb:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties: 
+      Scheme: internet-facing
+      SecurityGroups: 
+        - !ImportValue AllenModule07SecurityGroup
+      Subnets: 
+        - !ImportValue AllenModule07PublicSubnetId1
+        - !ImportValue AllenModule07PublicSubnetId2
+
+  WebServerAsg:
+    Type: 'AWS::AutoScaling::AutoScalingGroup'
+    Properties:
+      AutoScalingGroupName: 'AutomationBoxes'
+      VPCZoneIdentifier:
+        - !ImportValue AllenModule07PublicSubnetId1
+        - !ImportValue AllenModule07PublicSubnetId2
+      DesiredCapacity: '3'
+      HealthCheckType: 'ELB'
+      HealthCheckGracePeriod: 30 
+      LaunchConfigurationName: !Ref WebServersLC
+      MaxSize: '3'
+      MinSize: '3'
+      TargetGroupARNs:
+        - !Ref MyTargetGroup
+
+  WebServersLC:
+    Type: 'AWS::AutoScaling::LaunchConfiguration'
+    Properties:
+      ImageId: ami-0d9858aa3c6322f73
+      InstanceType: 't2.micro'
+      LaunchConfigurationName: 'SimpleWebServerLC'
+      SecurityGroups:
+        - !ImportValue AllenModule07SecurityGroup
+      UserData: 
+        Fn::Base64:
+          Fn::Sub: |
+            #!/bin/bash -xe
+            amazon-linux-extras install -y aws-cfn-bootstrap
+
+            # Install the files and packages from the metadata
+            /opt/aws/bin/cfn-init -v \
+              --stack ${AWS::StackName} \
+              --resource WebServersLC \
+              --configsets All \
+              --region ${AWS::Region}
+
+            # Signal the status from cfn-init
+            /opt/aws/bin/cfn-signal -e $? \
+              --stack ${AWS::StackName} \
+              --resource WebServersLC \
+              --region ${AWS::Region}
+
+    Metadata:
+      'AWS::CloudFormation::Init':
+        configSets:
+          All:
+            - ConfigureStelligentProject
+        ConfigureStelligentProject:
+          packages:
+            yum:
+              nginx: ["1.12"]
+          files:
+            /usr/share/nginx/html/index.html:
+              content: '<p>Automation for the People</p>'
+              mode: '000644'
+              owner: root
+              group: root
+          services:
+            sysvinit:
+              nginx:
+                enabled: 'true'
+                ensureRunning: 'true'
