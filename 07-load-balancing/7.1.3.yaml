@@ -4,28 +4,44 @@ Resources:
   MyAlbListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
-      DefaultActions:
-        - TargetGroupArn: !Ref MyTargetGroup
-          Type: forward
       LoadBalancerArn: !Ref MyAlb
       Port: 80
+      Protocol: "HTTP"
+      DefaultActions: 
+        - Order: 1
+          TargetGroupArn: !Ref MyTargetGroup
+          Type: "forward"
+    
+  MySecureAlbListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref MyAlb
+      Port: 443
+      Protocol: "HTTPS"
+      Certificates:
+        - CertificateArn: arn:aws:acm:us-west-1:324320755747:certificate/6cc8bf7e-1151-4d39-b51a-aca233d367d6
+      SslPolicy: ELBSecurityPolicy-FS-1-2-Res-2020-10
+      DefaultActions: 
+        - Order: 1
+          TargetGroupArn: !Ref MyTargetGroup
+          Type: "forward"
 
   MyTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties: 
       HealthCheckEnabled: true
       HealthCheckPath: "/index.html"
-      HealthCheckPort: "80"
+      HealthCheckPort: "traffic-port"
       HealthCheckProtocol: HTTP
       HealthyThresholdCount: 2
       UnhealthyThresholdCount: 2
-      HealthCheckIntervalSeconds: 10
+      HealthCheckIntervalSeconds: 30
+      HealthCheckTimeoutSeconds: 5
       VpcId: !ImportValue AllenModule07VPCId
-      Protocol: TCP
-      TargetType: alb
+      Protocol: HTTP
       Port: 80
-      Targets:
-          - Id: !Ref MyAlb
+      Matcher: 
+          HttpCode: "200"
   
   MyAlb:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
@@ -50,6 +66,8 @@ Resources:
       LaunchConfigurationName: !Ref WebServersLC
       MaxSize: '3'
       MinSize: '3'
+      TargetGroupARNs:
+        - !Ref MyTargetGroup
 
   WebServersLC:
     Type: 'AWS::AutoScaling::LaunchConfiguration'
