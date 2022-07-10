@@ -1,0 +1,96 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+  LogGroupName:
+    Type: String
+    Default: AllenFModule8LogGroup
+  TrailBucketName:
+    Type: String
+    Default: allen-f-module08-trail-bucket
+  CloudTrailName:
+    Type: String
+    Default: AllenFModule8CloudTrail
+
+Resources:
+  MyLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties: 
+      LogGroupName: !Ref LogGroupName
+      RetentionInDays: 60
+      Tags:
+        - Key: user
+          Value: allen.fisher
+        - Key: "stelligent-u-lesson"
+          Value: "8"
+  
+  
+  MyTrailS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref TrailBucketName
+      Tags:
+        - Key: user
+          Value: allen.fisher
+        - Key: "stelligent-u-lesson"
+          Value: "8"
+  
+  MyTrailS3BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties: 
+      Bucket: !Ref MyTrailS3Bucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - cloudtrail.amazonaws.com
+            Action: s3:GetBucketAcl
+            Resource: !GetAtt MyTrailS3Bucket.Arn
+          - Effect: Allow
+            Principal:
+              Service:
+                - cloudtrail.amazonaws.com
+            Action: s3:PutObject
+            Resource: !Sub ${MyTrailS3Bucket.Arn}/*
+            Condition: 
+              StringEquals:
+                s3:x-amz-acl: bucket-owner-full-control
+    
+  MyCloudWatchRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: ""
+            Effect: "Allow"
+            Principal:
+              Service: "cloudtrail.amazonaws.com"
+            Action: "sts:AssumeRole"
+      Policies:
+        - PolicyName: "cloud-watch-logs"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource: "*"
+        
+  MyCloudTrail:
+    Type: AWS::CloudTrail::Trail
+    Properties:
+      CloudWatchLogsLogGroupArn: !GetAtt MyLogGroup.Arn
+      CloudWatchLogsRoleArn: !GetAtt MyCloudWatchRole.Arn
+      IsLogging: true
+      S3BucketName: !Ref MyTrailS3Bucket
+      TrailName: !Ref CloudTrailName
+      Tags:
+        - Key: user
+          Value: allen.fisher
+        - Key: "stelligent-u-lesson"
+          Value: "8"
+    DependsOn: MyCloudWatchRole
