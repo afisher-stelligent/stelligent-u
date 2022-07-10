@@ -1,0 +1,14 @@
+[
+    {
+        "ParameterKey": "AmiID",
+        "ParameterValue": "ami-0d9858aa3c6322f73"
+    },
+    {
+        "ParameterKey": "InstType",
+        "ParameterValue": "t2.micro"
+    },
+    {
+        "ParameterKey": "KeyPairName",
+        "ParameterValue": "allenflab4"
+    }
+]

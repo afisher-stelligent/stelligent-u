@@ -1,0 +1,75 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+  AmiID:
+    Type: String
+  InstType:
+    Type: String
+  KeyPairName:
+    Type: String
+
+Resources:
+  MyEc2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstType
+      ImageId: !Ref AmiID
+      KeyName: !Ref KeyPairName
+      AvailabilityZone: us-west-1a
+      SubnetId: !ImportValue AllenLab4SubnetId
+      SecurityGroupIds:
+        - !GetAtt MySecurityGroup.GroupId
+      Tags:
+        - Key: user
+          Value: allen.fisher
+        - Key: "stelligent-u-lesson"
+          Value: "4"
+        - Key: "stelligent-u-lab"
+          Value: "4.1.4"
+
+  MyPrivateEc2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstType
+      ImageId: !Ref AmiID
+      KeyName: !Ref KeyPairName
+      AvailabilityZone: us-west-1a
+      SubnetId: !ImportValue AllenLab4PrivateSubnetId
+      SecurityGroupIds:
+        - !GetAtt MySecurityGroup.GroupId
+      Tags:
+        - Key: user
+          Value: allen.fisher
+        - Key: "stelligent-u-lesson"
+          Value: "4"
+        - Key: "stelligent-u-lab"
+          Value: "4.1.7"
+
+  MySecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Allen F Lab 4 SG"
+      GroupName: AllenFSg
+      VpcId: !ImportValue AllenLab4VPCId
+      SecurityGroupIngress:
+        - IpProtocol: icmp
+          FromPort: 8
+          ToPort: 0
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+  MyEIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      InstanceId: !Ref MyEc2Instance
+
+Outputs:
+  PublicIP:
+    Description: "The public IP of this instance"
+    Value: !Ref MyEIP
+    Export:
+      Name: MyPublicIPAddress
