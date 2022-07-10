@@ -1,0 +1,51 @@
+---
+"AWSTemplateFormatVersion": "2010-09-09"
+
+Resources:
+  MyKmsKey:
+    Type: AWS::KMS::Key
+    Properties: 
+      KeyPolicy:
+        Statement:
+        - Sid: AllowIAMPermissions
+          Effect: Allow
+          Principal:
+            AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+          Action: kms:*
+          Resource: '*'
+        - Sid: KeyAdministration
+          Effect: Allow
+          Principal:
+            AWS: !Sub arn:aws:iam::${AWS::AccountId}:user/allen.fisher
+          Action:
+            - kms:Create*
+            - kms:Describe*
+            - kms:Enable*
+            - kms:List*
+            - kms:Put*
+            - kms:Update*
+            - kms:Revoke*
+            - kms:Disable*
+            - kms:Get*
+            - kms:Delete*
+            - kms:ScheduleKeyDeletion
+            - kms:CancelKeyDeletion
+          Resource: '*'
+        - Sid: KeyUsage
+          Effect: Allow
+          Principal:
+            AWS: !Sub arn:aws:iam::${AWS::AccountId}:user/allen.fisher
+          Action:
+            - kms:DescribeKey
+            - kms:Encrypt
+            - kms:Decrypt
+            - kms:ReEncrypt*
+            - kms:GenerateDataKey
+            - kms:GenerateDataKeyWithoutPlaintext
+          Resource: '*'
+
+  MyKmsAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: alias/AllenCoolKey
+      TargetKeyId: !Ref MyKmsKey
