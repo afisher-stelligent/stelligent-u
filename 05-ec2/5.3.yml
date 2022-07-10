@@ -1,0 +1,191 @@
+---
+"AWSTemplateFormatVersion": "2010-09-09"
+
+Parameters:
+  LinuxAmi:
+    Type: String
+
+Resources:
+  MyLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateData:
+        KeyName: allenF_2022_07_05
+        InstanceType: t3.micro
+        SecurityGroupIds:
+          - !ImportValue AllenMod5Sg
+        TagSpecifications:
+          - ResourceType: instance
+            Tags:
+              - Key: user
+                Value: allen.fisher
+              - Key: "stelligent-u-lesson"
+                Value: "5"
+
+  MyLinuxInstance53:
+    Type: AWS::EC2::Instance
+    Metadata:
+      AWS::Cloudformation::Init:
+        configSets:
+          default:
+            - 00_get_agent
+            - 01_configFile
+            - 02_start_restart_service
+          UpdateEnvironment:
+            - 01_configfile
+            - 02_start_restart_service
+        00_get_agent:
+          commands:
+            01_download_pkg:
+              command: wget https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb
+            02_install_pkg:
+              command: dpkg -i amazon-cloudwatch-agent.deb
+        01_configfile:
+          files:
+            '/etc/config/cloudwatchagent.config':
+              content: |
+                {
+                  "agent": {
+                    "metrics_collection_interval": 10,
+                    "logfile": "/opt/aws/amazon-cloudwatch-agent/logs/amazon-cloudwatch-agent.log"
+                  },
+                  "metrics": {
+                    "namespace": "MyCustomNamespace",
+                    "metrics_collected": {
+                      "cpu": {
+                        "resources": ["*"],
+                        "measurement": [
+                          {
+                            "name": "cpu_usage_idle",
+                            "rename": "CPU_USAGE_IDLE",
+                            "unit": "Percent"
+                          },
+                          { "name": "cpu_usage_nice", "unit": "Percent" },
+                          "cpu_usage_guest"
+                        ],
+                        "totalcpu": false,
+                        "metrics_collection_interval": 10,
+                        "append_dimensions": {
+                          "customized_dimension_key_1": "customized_dimension_value_1",
+                          "customized_dimension_key_2": "customized_dimension_value_2"
+                        }
+                      },
+                      "disk": {
+                        "resources": ["/", "/tmp"],
+                        "measurement": [
+                          { "name": "free", "rename": "DISK_FREE", "unit": "Gigabytes" },
+                          "total",
+                          "used"
+                        ],
+                        "ignore_file_system_types": ["sysfs", "devtmpfs"],
+                        "metrics_collection_interval": 1,
+                        "append_dimensions": {
+                          "customized_dimension_key_3": "customized_dimension_value_3",
+                          "customized_dimension_key_4": "customized_dimension_value_4"
+                        }
+                      },
+                      "diskio": {
+                        "resources": ["*"],
+                        "measurement": [
+                          "reads",
+                          "writes",
+                          "read_time",
+                          "write_time",
+                          "io_time"
+                        ],
+                        "metrics_collection_interval": 60
+                      },
+                      "swap": {
+                        "measurement": ["swap_used", "swap_free", "swap_used_percent"]
+                      },
+                      "mem": {
+                        "measurement": ["mem_used", "mem_cached", "mem_total"],
+                        "metrics_collection_interval": 1
+                      },
+                      "net": {
+                        "resources": ["eth0"],
+                        "measurement": ["bytes_sent", "bytes_recv", "drop_in", "drop_out"]
+                      },
+                      "netstat": {
+                        "measurement": ["tcp_established", "tcp_syn_sent", "tcp_close"],
+                        "metrics_collection_interval": 60
+                      },
+                      "processes": {
+                        "measurement": ["running", "sleeping", "dead"]
+                      }
+                    },
+                    "force_flush_interval": 30
+                  },
+                  "logs": {
+                    "logs_collected": {
+                      "files": {
+                        "collect_list": [
+                          {
+                            "file_path": "/opt/aws/amazon-cloudwatch-agent/logs/amazon-cloudwatch-agent.log",
+                            "log_group_name": "amazon-cloudwatch-agent.log",
+                            "log_stream_name": "amazon-cloudwatch-agent.log",
+                            "timezone": "UTC"
+                          },
+                          {
+                            "file_path": "/opt/aws/amazon-cloudwatch-agent/logs/test.log",
+                            "log_group_name": "test.log",
+                            "log_stream_name": "test.log",
+                            "timezone": "Local"
+                          }
+                        ]
+                      }
+                    },
+                    "log_stream_name": "my_log_stream_name",
+                    "force_flush_interval": 15
+                  }
+                }
+        02_start_restart_service:
+          commands:
+            01_stop_service:
+              command: amazon-cloudwatch-agent-ctl -a stop
+            02_start_service:
+              command: amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file://etc/config/cloudwatchagent.config  
+
+    Properties:
+      ImageId: !Ref LinuxAmi
+      AvailabilityZone: us-west-1a
+      SubnetId: !ImportValue AllenLab5PublicSubnetId
+      IamInstanceProfile: !Ref MyInstanceProfile
+      LaunchTemplate:
+        LaunchTemplateId: !Ref MyLaunchTemplate
+        Version: "1"
+
+  MyCloudWatchRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub "${AWS::AccountId}"
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
+  
+  MyInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties: 
+      InstanceProfileName: cloudwatch
+      Path: /
+      Roles: 
+       - !Ref MyCloudWatchRole
+
+  MyEIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      InstanceId: !Ref MyLinuxInstance53
+
+Outputs:
+  EIP:
+    Description: "Public IP for Instance"
+    Value: !Ref MyEIP
+    Export:
+      Name: Lab52EIP

@@ -1,0 +1,46 @@
+---
+"AWSTemplateFormatVersion": "2010-09-09"
+
+Parameters:
+  LinuxAmi:
+    Type: String
+
+Resources:
+  MyLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateData:
+        KeyName: allenF_2022_07_05
+        InstanceType: t3.micro
+        SecurityGroupIds:
+          - !ImportValue AllenMod5Sg
+        TagSpecifications:
+          - ResourceType: instance
+            Tags:
+              - Key: user
+                Value: allen.fisher
+              - Key: "stelligent-u-lesson"
+                Value: "5"
+
+  MyLinuxInstance52:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref LinuxAmi
+      AvailabilityZone: us-west-1a
+      SubnetId: !ImportValue AllenLab5PublicSubnetId
+      LaunchTemplate:
+        LaunchTemplateId: !Ref MyLaunchTemplate
+        Version: "1"
+  
+  MyEIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      InstanceId: !Ref MyLinuxInstance52
+
+Outputs:
+  EIP:
+    Description: "Public IP for Instance"
+    Value: !Ref MyEIP
+    Export:
+      Name: Lab52EIP
