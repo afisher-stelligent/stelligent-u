@@ -1,0 +1,46 @@
+---
+"AWSTemplateFormatVersion": "2010-09-09"
+
+Parameters:
+  LinuxAmi:
+    Type: String
+
+Resources:
+  MyLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateData:
+        KeyName: allenF_2022_07_05
+        InstanceType: t2.micro
+        ImageId: !Ref LinuxAmi
+        TagSpecifications:
+          - ResourceType: instance
+            Tags:
+              - Key: user
+                Value: allen.fisher
+              - Key: "stelligent-u-lesson"
+                Value: "6"
+
+  MyAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    UpdatePolicy:
+      AutoScalingReplacingUpdate:
+        WillReplace: true
+    Properties: 
+      AvailabilityZones:
+        - "us-west-1a"
+      MaxSize: "3"
+      MinSize: "1"
+      DesiredCapacity: "2"
+      VPCZoneIdentifier: 
+        - !ImportValue AllenModule08PrivateSubnetId
+      LaunchTemplate:
+        Version: !GetAtt MyLaunchTemplate.LatestVersionNumber
+        LaunchTemplateId: !Ref MyLaunchTemplate
+      Tags:
+        - Key: user
+          Value: allen.fisher
+          PropagateAtLaunch: true
+        - Key: "stelligent-u-lesson"
+          Value: "6"
+          PropagateAtLaunch: true
