@@ -113,47 +113,24 @@ Resources:
           Fn::Sub: |
             #!/bin/bash -xe
             amazon-linux-extras install -y aws-cfn-bootstrap
-
-            # Install the files and packages from the metadata
-            /opt/aws/bin/cfn-init -v \
-              --stack ${AWS::StackName} \
-              --resource WebServersLC \
-              --configsets All \
-              --region ${AWS::Region}
+            amazon-linux-extras install -y nginx1
+            service nginx start
+            middlename = $(aws ssm get-parameter --name /allen.fisher/middlename --with-decryption --query Parameter.Value --output text --region us-west-1)</p>
+            echo <<< EOL
+            <H1>Automation for ${ParameterName}</H1> 
+            <p>UserName: ${UserName}</p>
+            <p>Full Name: ${Name}</p>
+            <p>MiddleName: $(aws ssm get-parameter --name /allen.fisher/middlename --with-decryption --query Parameter.Value --output text --region us-west-1)</p>
+            <p>UserName: ${UserName}</p>
+            <p>Title: ${Title}</p>
+            <p>Address: ${StreetAddress}, ${City}, ${State}</p>
+            <p>Time Zone: ${TimeZone}</p>
+            <p>Team Name: ${TeamName}</p>
+            <p>Start Date ${StartDate}</p>
+            EOL >> /usr/share/nginx/html/index.html;
 
             # Signal the status from cfn-init
             /opt/aws/bin/cfn-signal -e $? \
               --stack ${AWS::StackName} \
               --resource WebServersLC \
               --region ${AWS::Region}
-
-    Metadata:
-      'AWS::CloudFormation::Init':
-        configSets:
-          All:
-            - ConfigureStelligentProject
-        ConfigureStelligentProject:
-          packages:
-            yum:
-              nginx: ["1.12"]
-          files:
-            /usr/share/nginx/html/index.html:
-              content: !Sub |
-                <H1>Automation for ${ParameterName}</H1>
-                <p>UserName: ${UserName}</p>
-                <p>Full Name: ${Name}</p>
-                <p>MiddleName: {{resolve:ssm-secure:/allen.fisher/middlename:1}}</p>
-                <p>UserName: ${UserName}</p>
-                <p>Title: ${Title}</p>
-                <p>Address: ${StreetAddress}, ${City}, ${State}</p>
-                <p>Time Zone: ${TimeZone}</p>
-                <p>Team Name: ${TeamName}</p>
-                <p>Start Date ${StartDate}</p>
-              mode: '000644'
-              owner: root
-              group: root
-          services:
-            sysvinit:
-              nginx:
-                enabled: 'true'
-                ensureRunning: 'true'
