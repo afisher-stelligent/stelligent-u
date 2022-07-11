@@ -21,3 +21,9 @@ s3_encryption_client = Aws::S3::EncryptionV2::Client.new(
     body: object_content
   )
 
+  response = s3_encryption_client.get_object(
+    bucket: bucket_name,
+    key: object_key
+  )
+
+  puts response.body.read
