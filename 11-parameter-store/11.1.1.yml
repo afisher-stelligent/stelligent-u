@@ -1,0 +1,106 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Lab 11.1.1'
+
+Parameters:
+  EngineerUserName:
+    Type: String
+  
+  EngineerName:
+    Type: String
+
+  EngineerTitle:
+    Type: String
+
+  EngineerStreetAddress:
+    Type: String
+    Default: 79090 Avenue 42
+  
+  EngineerCity:
+    Type: String
+    Default: Bermuda Dunes
+  
+  EngineerState:
+    Type: String
+    Default: CA
+    MaxLength: "2"
+    MinLength: "2"
+    AllowedPattern: "^[A-Z]{2}$"
+
+  EngineerTimeZone:
+    Type: String
+    Default: PDT
+    MaxLength: "3"
+    MinLength: "3"
+  
+  EngineerTeamName:
+    Type: String
+    Default: Consulting
+  
+  EngineerStartDate:
+    Type: String
+    Default: "2022-06-20"
+
+Resources:
+  MyEngineerUserName:
+    Type: AWS::SSM::Parameter
+    Properties: 
+      Name: !Sub /${EngineerUserName}/UserName
+      Type: String
+      Value: !Ref EngineerUserName
+  
+  MyEngineerName:
+    Type: AWS::SSM::Parameter
+    Properties: 
+      Name: !Sub /${EngineerUserName}/Name
+      Type: String
+      Value: !Ref EngineerName
+
+  MyEngineerAddress:
+    Type: AWS::SSM::Parameter
+    Properties: 
+      Name: !Sub /${EngineerUserName}/Address
+      Type: String
+      Value: !Ref EngineerStreetAddress
+
+  MyEngineerTitle:
+      Type: AWS::SSM::Parameter
+      Properties: 
+        Name: !Sub /${EngineerUserName}/Title
+        Type: String
+        Value: !Ref EngineerTitle
+  
+  MyEngineerState:
+      Type: AWS::SSM::Parameter
+      Properties: 
+        Name: !Sub /${EngineerUserName}/State
+        Type: String
+        Value: !Ref EngineerState
+  
+  MyEngineerCity:
+      Type: AWS::SSM::Parameter
+      Properties: 
+        Name: !Sub /${EngineerUserName}/City
+        Type: String
+        Value: !Ref EngineerCity
+  
+  MyEngineerTimeZone:
+      Type: AWS::SSM::Parameter
+      Properties: 
+        Name: !Sub /${EngineerUserName}/TimeZone
+        Type: String
+        Value: !Ref EngineerTimeZone
+    
+  MyEngineerTeam:
+      Type: AWS::SSM::Parameter
+      Properties: 
+        Name: !Sub /${EngineerUserName}/Team
+        Type: String
+        Value: !Ref EngineerTeamName
+  
+  MyEngineerStartDate:
+      Type: AWS::SSM::Parameter
+      Properties: 
+        Name: !Sub /${EngineerUserName}/StartDate
+        Type: String
+        Value: !Ref EngineerStartDate
