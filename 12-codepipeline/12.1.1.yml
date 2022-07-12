@@ -31,7 +31,11 @@ Parameters:
 
   CfnTemplatePath:
     Type: String
-    Default: 12-codepipeline/bucket.yml
+    Default: 12-codepipeline/bucket.yaml
+
+  CfnConfigPath:
+    Type: String
+    Default: 12-codepipeline/stack_parameters.json
 
 Resources:
   ArtifactBucket:
@@ -82,7 +86,8 @@ Resources:
             Capabilities: CAPABILITY_IAM
             RoleArn: !GetAtt CfnRole.Arn
             StackName: !Ref AppStackName
-            TemplatePath: !Ref CfnTemplatePath
+            TemplateConfiguration: !Sub SourceCode::${CfnTemplatePath}
+            TemplatePath: !Sub SourceCode::${CfnTemplatePath}
           RunOrder: 1
 
 # ROLES
@@ -113,7 +118,7 @@ Resources:
                 - 'cloudformation:DeleteChangeSet'
                 - 'cloudformation:DescribeChangeSet'
                 - 'cloudformation:SetStackPolicy'
-                # - 'iam:PassRole'
+                - 'iam:PassRole'
                 Effect: Allow
                 Resource: "*"
   CfnRole:

@@ -12,3 +12,4 @@ __pycache__
 .ruby-version
 *.pem
 00-dev-environment/aws-mfa-cli/.venv
+12-codepipeline/1211_parameters.json
