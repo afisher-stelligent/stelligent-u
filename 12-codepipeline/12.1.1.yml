@@ -137,15 +137,15 @@ Resources:
             Version: '2012-10-17'
             Statement:
               - Action:
-                -  s3:* 
-                -  cloudformation:CreateStack 
-                -  cloudformation:DescribeStacks 
-                -  cloudformation:DeleteStack 
-                -  cloudformation:UpdateStack 
-                -  cloudformation:CreateChangeSet 
-                -  cloudformation:ExecuteChangeSet 
-                -  cloudformation:DeleteChangeSet 
-                -  cloudformation:DescribeChangeSet 
+                - s3:* 
+                - cloudformation:CreateStack 
+                - cloudformation:DescribeStacks 
+                - cloudformation:DeleteStack 
+                - cloudformation:UpdateStack 
+                - cloudformation:CreateChangeSet 
+                - cloudformation:ExecuteChangeSet 
+                - cloudformation:DeleteChangeSet 
+                - cloudformation:DescribeChangeSet 
                 - cloudformation:SetStackPolicy
                 - codebuild:StartBuild
                 - codebuild:BatchGetBuilds
@@ -199,7 +199,7 @@ Resources:
     Type: AWS::CodePipeline::Webhook
     Properties: 
       Authentication: GITHUB_HMAC
-      AuthenticationConfiguration: 
+      AuthenticationConfiguration:
         SecretToken: !Ref GHToken
       Filters: 
         - JsonPath: '$.ref'
