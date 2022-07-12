@@ -1,8 +1,7 @@
 version: 0.2
-
 phases:
   build:
     commands:
-      - echo "Validating CFN Template"
-      - cd 12-codepipeline
-      - aws cloudformation validate-template bucket.yaml
+    - echo "Validating CFN Template"
+    - cd 12-codepipeline
+    - aws cloudformation validate-template bucket.yaml

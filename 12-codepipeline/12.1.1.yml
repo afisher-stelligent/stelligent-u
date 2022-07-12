@@ -6,27 +6,27 @@ Parameters:
   GHToken:
     Type: String
     NoEcho: true
-    MinLength: "40"
-    MaxLength: "40"
+    MinLength: '40'
+    MaxLength: '40'
   
   CodeOwner:
     Type: String
-    AllowedPattern: "[A-Za-z0-9-]+"
+    AllowedPattern: '[A-Za-z0-9-]+'
     Default: afisher-stelligent
 
   Repo:
     Type: String
-    AllowedPattern: "[A-Za-z0-9-]+"
+    AllowedPattern: '[A-Za-z0-9-]+'
     Default: stelligent-u
   
   Branch:
     Type: String
-    AllowedPattern: "[A-Za-z0-9-]+"
+    AllowedPattern: '[A-Za-z0-9-]+'
     Default: module12
   
   AppStackName:
     Type: String
-    AllowedPattern: "[A-Za-z0-9-]+"
+    AllowedPattern: '[A-Za-z0-9-]+'
     Default: allen-f-module12-app
 
   CfnTemplatePath:
@@ -75,7 +75,7 @@ Resources:
           ActionTypeId:
             Category: Source
             Owner: ThirdParty
-            Version: "1"
+            Version: '1'
             Provider: GitHub
           OutputArtifacts:
           - Name: SourceCode
@@ -125,7 +125,7 @@ Resources:
     Properties:
       AssumeRolePolicyDocument:
         Statement:
-        - Action: ['sts:AssumeRole']
+        - Action: [sts:AssumeRole]
           Effect: Allow
           Principal:
             Service: [codepipeline.amazonaws.com]
@@ -137,24 +137,26 @@ Resources:
             Version: '2012-10-17'
             Statement:
               - Action:
-                - 's3:*'
-                - 'cloudformation:CreateStack'
-                - 'cloudformation:DescribeStacks'
-                - 'cloudformation:DeleteStack'
-                - 'cloudformation:UpdateStack'
-                - 'cloudformation:CreateChangeSet'
-                - 'cloudformation:ExecuteChangeSet'
-                - 'cloudformation:DeleteChangeSet'
-                - 'cloudformation:DescribeChangeSet'
-                - 'cloudformation:SetStackPolicy'
-                - 'iam:PassRole'
+                -  s3:* 
+                -  cloudformation:CreateStack 
+                -  cloudformation:DescribeStacks 
+                -  cloudformation:DeleteStack 
+                -  cloudformation:UpdateStack 
+                -  cloudformation:CreateChangeSet 
+                -  cloudformation:ExecuteChangeSet 
+                -  cloudformation:DeleteChangeSet 
+                -  cloudformation:DescribeChangeSet 
+                - cloudformation:SetStackPolicy
+                - codebuild:StartBuild
+                - codebuild:BatchGetBuilds
+                - iam:PassRole
                 Effect: Allow
-                Resource: "*"
+                Resource: '*'
   CfnRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           Effect: Allow
           Principal:
@@ -175,16 +177,22 @@ Resources:
               Service: codebuild.amazonaws.com
             Action: sts:AssumeRole
       Policies:
-        - PolicyName: "S3"
+        - PolicyName: S3
           PolicyDocument:
-            Version: "2012-10-17"
+            Version: '2012-10-17'
             Statement:
-                - Effect: "Allow"
+                - Effect: Allow
                   Action:
                       - s3:GetObject
                       - s3:PutObject
                       - s3:GetObjectVersion
                   Resource: !Sub ${ArtifactBucket.Arn}/*
+                - Effect: Allow
+                  Action:
+                      - logs:CreateLogGroup
+                      - logs:CreateLogStream
+                      - logs:PutLogEvents
+                  Resource: '*'
 
 # GITHUB WebHook
   GhWebHook:
@@ -194,7 +202,7 @@ Resources:
       AuthenticationConfiguration: 
         SecretToken: !Ref GHToken
       Filters: 
-        - JsonPath: "$.ref"
+        - JsonPath: '$.ref'
           MatchEquals: refs/heads/{Branch}
       Name: String
       RegisterWithThirdParty: true
