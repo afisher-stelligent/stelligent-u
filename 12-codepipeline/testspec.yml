@@ -6,4 +6,5 @@ env:
 phases:
   build:
     commands:
+      - echo $S3_BUCKET
       - aws s3api head-bucket --bucket $S3_BUCKET
