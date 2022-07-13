@@ -220,7 +220,7 @@ Resources:
                       - s3:GetObject
                       - s3:PutObject
                       - s3:GetObjectVersion
-                  Resource: !Sub ${ArtifactBucket.Arn}/*
+                  Resource: arn:aws:s3:::codepipeline-us-west-1-*
                 - Effect: Allow
                   Action:
                       - logs:CreateLogGroup
