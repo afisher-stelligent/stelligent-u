@@ -11,3 +11,8 @@ phases:
     commands:
       - echo "Validating CFN Template"
       - cfn-lint 12-codepipeline/bucket.yaml
+    finally:
+      - echo "Template Validation Completed"
+  
+  post_build:
+    on-failure: ABORT

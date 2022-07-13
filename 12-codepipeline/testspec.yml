@@ -6,5 +6,7 @@ env:
 phases:
   build:
     commands:
-      - echo $S3_BUCKET
+      - echo "Checking Application health"
       - aws s3api head-bucket --bucket $S3_BUCKET
+    finally:
+      - echo "Application Health Check completed!"
