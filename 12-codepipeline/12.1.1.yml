@@ -229,6 +229,10 @@ Resources:
                       - logs:CreateLogStream
                       - logs:PutLogEvents
                   Resource: '*'
+                - Effect: Allow
+                  Action:
+                      - s3:ListBucket
+                  Resource: '*'
 
 # GITHUB WebHook
   GhWebHook:
