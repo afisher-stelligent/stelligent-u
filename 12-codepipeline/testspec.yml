@@ -1,0 +1,9 @@
+---
+version: 0.2
+env:
+  variables:
+    key: S3_BUCKET
+phases:
+  build:
+    commands:
+      - aws s3api head-bucket --bucket $S3_Bucket

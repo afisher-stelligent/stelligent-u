@@ -59,6 +59,25 @@ Resources:
       Name: !Ref AWS::StackName
       ServiceRole: !Ref CodeBuildRole
   
+  CodeBuildTestProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub ${AWS::StackName}-testing
+      Artifacts:
+        Type: CODEPIPELINE
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: 12-codepipeline/testspec.yml
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:4.0
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: S3_BUCKET
+            Type: PLAINTEXT
+            Value: !ImportValue AllenModule12BucketName
+      ServiceRole: !Ref CodeBuildRole
+  
   MyCodePipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties:
@@ -117,7 +136,22 @@ Resources:
             StackName: !Ref AppStackName
             TemplatePath: !Sub SourceCode::${CfnTemplatePath}
             ParameterOverrides: !Sub '{"BucketNameParameter": "${StackBucketName}"}'
+          OutputArtifacts:
+            - Name: S3Bucket
           RunOrder: 1
+      
+      - Name: Test
+        Actions:
+        - Name: Validate Bucket exists
+          ActionTypeId:
+            Category: Build
+            Owner: AWS
+            Provider: CodeBuild
+            Version: '1'
+          InputArtifacts:
+            - Name: S3Bucket
+          Configuration:
+            ProjectName: !Ref CodeBuildTestProject
 
 # ROLES
   PipelineRole:
