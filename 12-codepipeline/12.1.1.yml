@@ -105,6 +105,7 @@ Resources:
             PollForSourceChanges: false
             OAuthToken: !Ref GHToken
           RunOrder: 1
+      
       - Name: BuildIt
         Actions:
           - Name: BuildIt
@@ -148,10 +149,11 @@ Resources:
             Owner: AWS
             Provider: CodeBuild
             Version: '1'
-          InputArtifacts:
-            - Name: S3Bucket
+          InputArtifacts: 
+            - Name: SourceCode
           Configuration:
             ProjectName: !Ref CodeBuildTestProject
+          RunOrder: 1
 
 # ROLES
   PipelineRole:
@@ -220,7 +222,7 @@ Resources:
                       - s3:GetObject
                       - s3:PutObject
                       - s3:GetObjectVersion
-                  Resource: arn:aws:s3:::codepipeline-us-west-1-*
+                  Resource: !Sub ${ArtifactBucket.Arn}/*
                 - Effect: Allow
                   Action:
                       - logs:CreateLogGroup
