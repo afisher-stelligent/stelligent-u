@@ -109,7 +109,6 @@ Resources:
             Capabilities: CAPABILITY_IAM
             RoleArn: !GetAtt CfnRole.Arn
             StackName: !Ref AppStackName
-            TemplatePath: !Sub SourceCode::${AppStackTemplatePath}
           RunOrder: 3
   
   PipelineRole:

@@ -13,10 +13,10 @@ Resources:
     Properties: 
       TableName: !Ref PartsTableName
       AttributeDefinitions: 
-        - AttributeName: ID2
+        - AttributeName: ID3
           AttributeType: S
       KeySchema: 
-        - AttributeName: ID2
+        - AttributeName: ID3
           KeyType: HASH
       ProvisionedThroughput: 
         ReadCapacityUnits: 5
