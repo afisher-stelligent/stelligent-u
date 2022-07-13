@@ -75,7 +75,7 @@ Resources:
         EnvironmentVariables:
           - Name: S3_BUCKET
             Type: PLAINTEXT
-            Value: !ImportValue AllenModule12BucketName
+            Value: !Ref StackBucketName
       ServiceRole: !Ref CodeBuildRole
   
   MyCodePipeline:
@@ -142,7 +142,7 @@ Resources:
       
       - Name: Test
         Actions:
-        - Name: Validate Bucket exists
+        - Name: ValidateBucketExists
           ActionTypeId:
             Category: Build
             Owner: AWS
