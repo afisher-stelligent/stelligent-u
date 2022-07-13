@@ -87,6 +87,14 @@ Resources:
             TemplatePath: !Sub SourceCode::${AppStackTemplatePath}
           RunOrder: 1
 
+        - Name: ApproveChangeSet
+          ActionTypeId:
+            Category: Approval
+            Owner: AWS
+            Provider: Manual
+            Version: '1'
+          RunOrder: 2
+
         - Name: DeployChangeSet
           ActionTypeId:
             Category: Deploy
@@ -102,7 +110,7 @@ Resources:
             RoleArn: !GetAtt CfnRole.Arn
             StackName: !Ref AppStackName
             TemplatePath: !Sub SourceCode::${AppStackTemplatePath}
-          RunOrder: 2
+          RunOrder: 3
   
   PipelineRole:
     Type: AWS::IAM::Role
