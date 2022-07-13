@@ -159,4 +159,18 @@ Resources:
                 - iam:DetachRolePolicy
                 - dynamodb:*
                 Resource: '*'
-  
+
+  GhWebHook:
+    Type: AWS::CodePipeline::Webhook
+    Properties: 
+      Authentication: GITHUB_HMAC
+      AuthenticationConfiguration:
+        SecretToken: !Ref GHToken
+      Filters: 
+        - JsonPath: '$.ref'
+          MatchEquals: refs/heads/{Branch}
+      Name: String
+      RegisterWithThirdParty: true
+      TargetAction: GetSource
+      TargetPipeline: !Ref CodePipeline
+      TargetPipelineVersion: !GetAtt CodePipeline.Version
