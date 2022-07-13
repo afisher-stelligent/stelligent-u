@@ -1,0 +1,251 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Lab 12.1.1
+
+Parameters:
+  GHToken:
+    Type: String
+    NoEcho: true
+    MinLength: '40'
+    MaxLength: '40'
+  
+  CodeOwner:
+    Type: String
+    AllowedPattern: '[A-Za-z0-9-]+'
+    Default: afisher-stelligent
+
+  Repo:
+    Type: String
+    AllowedPattern: '[A-Za-z0-9-]+'
+    Default: stelligent-u
+  
+  Branch:
+    Type: String
+    AllowedPattern: '[A-Za-z0-9-]+'
+    Default: module12
+  
+  AppStackName:
+    Type: String
+    AllowedPattern: '[A-Za-z0-9-]+'
+    Default: allen-f-module12-app
+
+  CfnTemplatePath:
+    Type: String
+    Default: 12-codepipeline/bucket.yaml
+
+  StackBucketName:
+    Type: String
+    Default: allenmodule12.codepipeline.bucket
+
+Resources:
+  ArtifactBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      VersioningConfiguration:
+        Status: Enabled
+  
+  CodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: 12-codepipeline/buildspec.yml
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:4.0
+        Type: LINUX_CONTAINER
+      Name: !Ref AWS::StackName
+      ServiceRole: !Ref CodeBuildRole
+  
+  CodeBuildTestProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub ${AWS::StackName}-testing
+      Artifacts:
+        Type: CODEPIPELINE
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: 12-codepipeline/testspec.yml
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:4.0
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: S3_BUCKET
+            Type: PLAINTEXT
+            Value: !Ref StackBucketName
+      ServiceRole: !Ref CodeBuildRole
+  
+  MyCodePipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      ArtifactStore:
+        Type: S3
+        Location: !Ref ArtifactBucket
+      RestartExecutionOnUpdate: true
+      RoleArn: !GetAtt PipelineRole.Arn
+      Stages:
+      - Name: Source
+        Actions:
+        - Name: GetSource
+          InputArtifacts: []
+          ActionTypeId:
+            Category: Source
+            Owner: ThirdParty
+            Version: '1'
+            Provider: GitHub
+          OutputArtifacts:
+          - Name: SourceCode
+          Configuration:
+            Owner: !Ref CodeOwner
+            Repo: !Ref Repo
+            Branch: !Ref Branch
+            PollForSourceChanges: false
+            OAuthToken: !Ref GHToken
+          RunOrder: 1
+      
+      - Name: BuildIt
+        Actions:
+          - Name: BuildIt
+            ActionTypeId:
+              Category: Build
+              Owner: AWS
+              Version: '1'
+              Provider: CodeBuild
+            Configuration:
+              ProjectName: !Ref CodeBuildProject
+            InputArtifacts:
+              - Name: SourceCode
+            RunOrder: 1
+
+      - Name: Deploy
+        Actions:
+        - Name: CloudFormationDeploy
+          ActionTypeId:
+            Category: Deploy
+            Owner: AWS
+            Provider: CloudFormation
+            Version: '1'
+          InputArtifacts:
+            - Name: SourceCode
+          Configuration:
+            ActionMode: CREATE_UPDATE
+            Capabilities: CAPABILITY_IAM
+            RoleArn: !GetAtt CfnRole.Arn
+            StackName: !Ref AppStackName
+            TemplatePath: !Sub SourceCode::${CfnTemplatePath}
+            ParameterOverrides: !Sub '{"BucketNameParameter": "${StackBucketName}"}'
+          OutputArtifacts:
+            - Name: S3Bucket
+          RunOrder: 1
+      
+      - Name: Test
+        Actions:
+        - Name: ValidateBucketExists
+          ActionTypeId:
+            Category: Build
+            Owner: AWS
+            Provider: CodeBuild
+            Version: '1'
+          InputArtifacts: 
+            - Name: SourceCode
+          Configuration:
+            ProjectName: !Ref CodeBuildTestProject
+          RunOrder: 1
+
+# ROLES
+  PipelineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: [sts:AssumeRole]
+          Effect: Allow
+          Principal:
+            Service: [codepipeline.amazonaws.com]
+        Version: '2012-10-17'
+      Path: /
+      Policies:
+        - PolicyName: CodePipelineAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                - s3:* 
+                - cloudformation:CreateStack 
+                - cloudformation:DescribeStacks 
+                - cloudformation:DeleteStack 
+                - cloudformation:UpdateStack 
+                - cloudformation:CreateChangeSet 
+                - cloudformation:ExecuteChangeSet 
+                - cloudformation:DeleteChangeSet 
+                - cloudformation:DescribeChangeSet 
+                - cloudformation:SetStackPolicy
+                - codebuild:StartBuild
+                - codebuild:BatchGetBuilds
+                - iam:PassRole
+                Effect: Allow
+                Resource: '*'
+  CfnRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          Effect: Allow
+          Principal:
+            Service: cloudformation.amazonaws.com
+          Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess
+
+  CodeBuildRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: S3
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+                - Effect: Allow
+                  Action:
+                      - s3:GetObject
+                      - s3:PutObject
+                      - s3:GetObjectVersion
+                  Resource: !Sub ${ArtifactBucket.Arn}/*
+                - Effect: Allow
+                  Action:
+                      - logs:CreateLogGroup
+                      - logs:CreateLogStream
+                      - logs:PutLogEvents
+                  Resource: '*'
+                - Effect: Allow
+                  Action:
+                      - s3:ListBucket
+                  Resource: '*'
+
+# GITHUB WebHook
+  GhWebHook:
+    Type: AWS::CodePipeline::Webhook
+    Properties: 
+      Authentication: GITHUB_HMAC
+      AuthenticationConfiguration:
+        SecretToken: !Ref GHToken
+      Filters: 
+        - JsonPath: '$.ref'
+          MatchEquals: refs/heads/{Branch}
+      Name: String
+      RegisterWithThirdParty: true
+      TargetAction: GetSource
+      TargetPipeline: !Ref MyCodePipeline
+      TargetPipelineVersion: !GetAtt MyCodePipeline.Version

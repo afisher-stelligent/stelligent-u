@@ -1,0 +1,183 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Pipeline Stack for 12.2
+
+Parameters:
+  GHToken:
+    Type: String
+    NoEcho: true
+    MinLength: '40'
+    MaxLength: '40'
+
+  CodeOwner:
+    Type: String
+    AllowedPattern: '[A-Za-z0-9-]+'
+    Default: afisher-stelligent
+
+  Repo:
+    Type: String
+    AllowedPattern: '[A-Za-z0-9-]+'
+    Default: stelligent-u
+  
+  Branch:
+    Type: String
+    AllowedPattern: '[A-Za-z0-9-]+'
+    Default: module12
+
+  AppStackName:
+    Type: String
+    AllowedPattern: '[A-Za-z0-9-]+'
+    Default: AllenF-Module122-BikeStore
+  
+  AppStackTemplatePath:
+    Type: String
+    Default: 12-codepipeline/12.2/appstack.yml
+
+Resources:
+  ArtifactBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      VersioningConfiguration:
+        Status: Enabled
+  
+  CodePipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      ArtifactStore:
+        Type: S3
+        Location: !Ref ArtifactBucket
+      RestartExecutionOnUpdate: true
+      RoleArn: !GetAtt PipelineRole.Arn
+      Stages:
+      - Name: Source
+        Actions:
+        - Name: GetSource
+          InputArtifacts: []
+          ActionTypeId:
+            Category: Source
+            Owner: ThirdParty
+            Version: '1'
+            Provider: GitHub
+          OutputArtifacts:
+          - Name: SourceCode
+          Configuration:
+            Owner: !Ref CodeOwner
+            Repo: !Ref Repo
+            Branch: !Ref Branch
+            PollForSourceChanges: false
+            OAuthToken: !Ref GHToken
+          RunOrder: 1
+      
+      - Name: DeployApp
+        Actions:
+        - Name: CreateChangeSet
+          ActionTypeId:
+            Category: Deploy
+            Owner: AWS
+            Provider: CloudFormation
+            Version: '1'
+          InputArtifacts:
+            - Name: SourceCode
+          Configuration:
+            ActionMode: CHANGE_SET_REPLACE
+            ChangeSetName: IncomingChanges
+            Capabilities: CAPABILITY_IAM
+            RoleArn: !GetAtt CfnRole.Arn
+            StackName: !Ref AppStackName
+            TemplatePath: !Sub SourceCode::${AppStackTemplatePath}
+          RunOrder: 1
+
+        - Name: ApproveChangeSet
+          ActionTypeId:
+            Category: Approval
+            Owner: AWS
+            Provider: Manual
+            Version: '1'
+          RunOrder: 2
+
+        - Name: DeployChangeSet
+          ActionTypeId:
+            Category: Deploy
+            Owner: AWS
+            Provider: CloudFormation
+            Version: '1'
+          InputArtifacts:
+            - Name: SourceCode
+          Configuration:
+            ActionMode: CHANGE_SET_EXECUTE
+            ChangeSetName: IncomingChanges
+            Capabilities: CAPABILITY_IAM
+            RoleArn: !GetAtt CfnRole.Arn
+            StackName: !Ref AppStackName
+          RunOrder: 3
+  
+  PipelineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: [sts:AssumeRole]
+          Effect: Allow
+          Principal:
+            Service: [codepipeline.amazonaws.com]
+        Version: '2012-10-17'
+      Path: /
+      Policies:
+        - PolicyName: CodePipelineAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                - s3:* 
+                - cloudformation:CreateStack 
+                - cloudformation:DescribeStacks 
+                - cloudformation:DeleteStack 
+                - cloudformation:UpdateStack 
+                - cloudformation:CreateChangeSet 
+                - cloudformation:ExecuteChangeSet 
+                - cloudformation:DeleteChangeSet 
+                - cloudformation:DescribeChangeSet 
+                - cloudformation:SetStackPolicy
+                - codebuild:StartBuild
+                - codebuild:BatchGetBuilds
+                - iam:PassRole
+                Effect: Allow
+                Resource: '*'
+  CfnRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          Effect: Allow
+          Principal:
+            Service: cloudformation.amazonaws.com
+          Action: sts:AssumeRole
+      Policies:
+        - PolicyName: CloudFormationCodePipeline
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: 
+                - iam:CreateRole
+                - iam:DeleteRole
+                - iam:AttachRolePolicy
+                - iam:DetachRolePolicy
+                - dynamodb:*
+                Resource: '*'
+
+  GhWebHook:
+    Type: AWS::CodePipeline::Webhook
+    Properties: 
+      Authentication: GITHUB_HMAC
+      AuthenticationConfiguration:
+        SecretToken: !Ref GHToken
+      Filters: 
+        - JsonPath: '$.ref'
+          MatchEquals: refs/heads/{Branch}
+      Name: String
+      RegisterWithThirdParty: true
+      TargetAction: GetSource
+      TargetPipeline: !Ref CodePipeline
+      TargetPipelineVersion: !GetAtt CodePipeline.Version

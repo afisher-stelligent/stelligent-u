@@ -9,3 +9,9 @@ Resources:
     Properties:
       BucketName: !Ref BucketNameParameter
     DeletionPolicy: Delete
+
+Outputs:
+  S3BucketName:
+    Value: !Ref S3Bucket
+    Export:
+      Name: AllenModule12BucketName

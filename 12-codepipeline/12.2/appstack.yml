@@ -1,0 +1,49 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: App stack for module 12.2
+
+Parameters:
+  PartsTableName:
+    Type: String
+    Default: AllenF-Module122-BikeParts
+
+Resources:
+  BikePartsDDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties: 
+      TableName: !Ref PartsTableName
+      AttributeDefinitions: 
+        - AttributeName: ID3
+          AttributeType: S
+      KeySchema: 
+        - AttributeName: ID3
+          KeyType: HASH
+      ProvisionedThroughput: 
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  DdbTableRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - dynamodb.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonDynamoDBReadOnlyAccess
+
+Outputs:
+  PartsTableName:
+    Value: !Ref BikePartsDDBTable
+    Export:
+      Name: AllenF122PartsTableName
+
+  PartsTableArn:
+    Value: !GetAtt BikePartsDDBTable.Arn
+    Export:
+      Name: AllenF122PartsTableArn
