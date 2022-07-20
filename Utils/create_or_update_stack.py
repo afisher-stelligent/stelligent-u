@@ -25,9 +25,10 @@ def _process_template(template_file):
 
 
 def _process_parameters(parameter_file):
-    with open(args.parameter_file) as f:
+    with open(parameter_file) as f:
         data = json.load(f)
     return data
+
 
 def _cleanup_bad_stack(stack):
     try: 
@@ -38,43 +39,59 @@ def _cleanup_bad_stack(stack):
         print(f'Stack {stack.get("StackName")} failed to delete')
 
 
-
 if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser(description='Create or update a stack using AWS CloudFormation')
 
     arg_parser.add_argument('-n', '--stack_name',       help='Name of the stack to create or update',    required=True)
     arg_parser.add_argument('-t', '--template_file',    help='Path to file in YAML format',              required=True)
-    arg_parser.add_argument('-p', '--parameter_file',   help='Parameter file for template parameters.',  required=True)
-    arg_parser.add_argument('-r', '--region',           help='Region to deploy the stack in',            required=True)
+    arg_parser.add_argument('-p', '--parameter_file',   help='Parameter file for template parameters.')
+    arg_parser.add_argument('-r', '--region',           help='Region to deploy the stack in')
     args = arg_parser.parse_args()
 
-    config = Config(
-        region_name = args.region
-    )
+    if args.region: # if a region is not passed, pulls from ENV.
+        config = Config(
+            region_name = args.region
+        )
     
     cf = boto3.client('cloudformation', config=config)
     try:
         if _stack_exists(args.stack_name):
             print(f'Updating {args.stack_name}')
-            resp = cf.update_stack(
-                StackName=args.stack_name,
-                TemplateBody=_process_template(args.template_file),
-                Parameters=_process_parameters(args.parameter_file),
-                Capabilities=['CAPABILITY_IAM']
-            )
+            if args.parameter_file:
+                resp = cf.update_stack(
+                    StackName=args.stack_name,
+                    TemplateBody=_process_template(args.template_file),
+                    Parameters=_process_parameters(args.parameter_file),
+                    Capabilities=['CAPABILITY_IAM'] # Room for improvement here...
+                )
+            else:
+                resp = cf.update_stack(
+                    StackName=args.stack_name,
+                    TemplateBody=_process_template(args.template_file),
+                    Capabilities=['CAPABILITY_IAM'] # Room for improvement here...
+                )
             waiter = cf.get_waiter('stack_update_complete')
         else:
             print(f'Creating {args.stack_name}')
-            resp = cf.create_stack(
-                StackName=args.stack_name,
-                TemplateBody=_process_template(args.template_file),
-                Parameters=_process_parameters(args.parameter_file),
-                Capabilities=['CAPABILITY_IAM']
-            )
+            if args.parameter_file:
+                resp = cf.create_stack(
+                    StackName=args.stack_name,
+                    TemplateBody=_process_template(args.template_file),
+                    Parameters=_process_parameters(args.parameter_file),
+                    Capabilities=['CAPABILITY_IAM'] # Room for improvement here...
+                )
+            else:
+                resp = cf.create_stack(
+                    StackName=args.stack_name,
+                    TemplateBody=_process_template(args.template_file),
+                    Capabilities=['CAPABILITY_IAM'] # Room for improvement here...
+                )
+
             waiter = cf.get_waiter('stack_create_complete')
             
             print(f'Waiting for stack {args.stack_name} to be ready')
     
         waiter.wait(StackName=args.stack_name)
+
     except cf.exceptions.ExpiredTokenException as e:
         print("Session Token Expired! Re-run your MFA authentication")
