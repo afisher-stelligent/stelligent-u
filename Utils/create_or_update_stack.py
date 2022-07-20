@@ -19,20 +19,26 @@ def _stack_exists(stack_name):
 
 
 def _process_template(template_file):
-    with open(template_file) as template:
-        template_data = template.read()
-    return template_data
+    try: 
+        with open(template_file) as template:
+            template_data = template.read()
+        return template_data
+    except FileNotFoundError:
+        print(f'Template file {template_file} not found. Check the path and try again.')
 
 
 def _process_parameters(parameter_file):
-    with open(parameter_file) as f:
-        data = json.load(f)
-    return data
+    try:
+        with open(parameter_file) as f:
+            data = json.load(f)
+        return data
+    except FileNotFoundError:
+        print(f'Parameter file {parameter_file} not found. Check the path and try again.')
 
 
 def _cleanup_bad_stack(stack):
     try: 
-        resp = cf.delete_stack(StackName=stack.get('StackName'))
+        cf.delete_stack(StackName=stack.get('StackName'))
         _wait_for_stack(stack.get('StackName'), 'stack_delete_complete')
     except ClientError as error:
         print(f'Stack {stack.get("StackName")} failed to delete')
@@ -48,7 +54,7 @@ if __name__ == '__main__':
 
     arg_parser.add_argument('-n', '--stack_name',       help='Name of the stack to create or update',    required=True)
     arg_parser.add_argument('-t', '--template_file',    help='Path to file in YAML format',              required=True)
-    arg_parser.add_argument('-p', '--parameter_file',   help='Parameter file for template parameters.')
+    arg_parser.add_argument('-p', '--parameter_file',   help='Path to json parameter file for template parameters.')
     arg_parser.add_argument('-r', '--region',           help='Region to deploy the stack in')
     args = arg_parser.parse_args()
 
@@ -56,8 +62,9 @@ if __name__ == '__main__':
         config = Config(
             region_name = args.region
         )
-    
-    cf = boto3.client('cloudformation', config=config)
+        cf = boto3.client('cloudformation', config=config)
+    else:
+        cf = boto3.client('cloudformation') # pulls everything from the environment
     try:
         if _stack_exists(args.stack_name):
             print(f'Updating {args.stack_name}')
