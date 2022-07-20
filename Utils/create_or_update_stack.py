@@ -1,6 +1,6 @@
 import boto3
 from botocore.config import Config
-
+from botocore.exceptions import ClientError
 import argparse
 import json
 
@@ -11,7 +11,7 @@ def _stack_exists(stack_name):
         if stack.get('StackStatus') == 'DELETE_COMPLETE':
             continue
         if stack.get('StackStatus') == "ROLLBACK_COMPLETE" or stack.get('StackStatus') == "UPDATE_ROLLBACK_FAILED":
-            _cleanup_bad_stacks(stack)
+            _cleanup_bad_stack(stack)
             return False
         if stack_name == stack.get('StackName'):
             return True
@@ -29,8 +29,14 @@ def _process_parameters(parameter_file):
         data = json.load(f)
     return data
 
-def _cleanup_bad_stacks(stack_name):
-    pass
+def _cleanup_bad_stack(stack):
+    try: 
+        resp = cf.delete_stack(StackName=stack.get('StackName'))
+        waiter = cf.get_waiter('stack_delete_complete')
+        waiter.wait(StackName=stack.get('StackName'))
+    except ClientError as error:
+        print(f'Stack {stack.get("StackName")} failed to delete')
+
 
 
 if __name__ == '__main__':
@@ -47,26 +53,28 @@ if __name__ == '__main__':
     )
     
     cf = boto3.client('cloudformation', config=config)
-
-    if _stack_exists(args.stack_name):
-        print(f'Updating {args.stack_name}')
-        resp = cf.update_stack(
-            StackName=args.stack_name,
-            TemplateBody=_process_template(args.template_file),
-            Parameters=_process_parameters(args.parameter_file),
-            Capabilities=['CAPABILITY_IAM']
-        )
-        waiter = cf.get_waiter('stack_update_complete')
-    else:
-        print(f'Creating {args.stack_name}')
-        resp = cf.create_stack(
-            StackName=args.stack_name,
-            TemplateBody=_process_template(args.template_file),
-            Parameters=_process_parameters(args.parameter_file),
-            Capabilities=['CAPABILITY_IAM']
-        )
-        waiter = cf.get_waiter('stack_create_complete')
-        
-        print(f'Waiting for stack {args.stack_name} to be ready')
+    try:
+        if _stack_exists(args.stack_name):
+            print(f'Updating {args.stack_name}')
+            resp = cf.update_stack(
+                StackName=args.stack_name,
+                TemplateBody=_process_template(args.template_file),
+                Parameters=_process_parameters(args.parameter_file),
+                Capabilities=['CAPABILITY_IAM']
+            )
+            waiter = cf.get_waiter('stack_update_complete')
+        else:
+            print(f'Creating {args.stack_name}')
+            resp = cf.create_stack(
+                StackName=args.stack_name,
+                TemplateBody=_process_template(args.template_file),
+                Parameters=_process_parameters(args.parameter_file),
+                Capabilities=['CAPABILITY_IAM']
+            )
+            waiter = cf.get_waiter('stack_create_complete')
+            
+            print(f'Waiting for stack {args.stack_name} to be ready')
     
-    waiter.wait(StackName=args.stack_name)
+        waiter.wait(StackName=args.stack_name)
+    except cf.exceptions.ExpiredTokenException as e:
+        print("Session Token Expired! Re-run your MFA authentication")
