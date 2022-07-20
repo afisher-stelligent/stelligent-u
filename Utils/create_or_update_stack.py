@@ -33,10 +33,14 @@ def _process_parameters(parameter_file):
 def _cleanup_bad_stack(stack):
     try: 
         resp = cf.delete_stack(StackName=stack.get('StackName'))
-        waiter = cf.get_waiter('stack_delete_complete')
-        waiter.wait(StackName=stack.get('StackName'))
+        _wait_for_stack(stack.get('StackName'), 'stack_delete_complete')
     except ClientError as error:
         print(f'Stack {stack.get("StackName")} failed to delete')
+        raise error
+
+def _wait_for_stack(stack_name, status):
+    waiter = cf.get_waiter(stack_name)
+    waiter.wait(stack_name, status)
 
 
 if __name__ == '__main__':
