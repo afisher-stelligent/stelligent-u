@@ -1,0 +1,91 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  MyLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.lambda_handler
+      Code: 
+        ZipFile: |
+          import json
+
+          def lambda_handler(event, context):
+            first_key = event.get('key1')
+            second_key = event.get('key2')
+
+            return {'statusCode': 200,'body': json.dumps(f'First Key is {first_key}')}
+
+      Role: !GetAtt MyLambdaExecutionRole.Arn
+      Runtime: python3.9
+  
+  MyLambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: MyLambdaExecutionRole
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+
+  ApiGatewayIamRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: ''
+            Effect: 'Allow'
+            Principal:
+              Service:
+                - 'apigateway.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      Path: '/'
+      Policies:
+        - PolicyName: LambdaAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: !GetAtt MyLambda.Arn
+  
+  MyApiGatewayRestApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties: 
+      Name: AllenApiGateway
+  
+  MyApiGatewayMethod:
+    Type: AWS::ApiGateway::Method
+    Properties: 
+      HttpMethod: ANY
+      Integration: 
+        Type: AWS
+        Credentials: !GetAtt ApiGatewayIamRole.Arn
+        IntegrationHttpMethod: POST
+        IntegrationResponses:
+          - StatusCode: "200"
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MyLambda.Arn}/invocations"
+
+      OperationName: hello
+      ResourceId: !GetAtt MyApiGatewayRestApi.RootResourceId
+      RestApiId: !Ref MyApiGatewayRestApi
+      MethodResponses:
+        - StatusCode: "200"
+      AuthorizationType: AWS_IAM
+  
+  MyLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties: 
+      Action: lambda:invokeFunction
+      FunctionName: !Ref MyLambda
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${MyApiGatewayRestApi}"
+  
+  MyDeployment:
+    Type: AWS::ApiGateway::Deployment
+    Properties: 
+      RestApiId: !Ref MyApiGatewayRestApi
+    DependsOn: MyApiGatewayMethod

@@ -1,0 +1,133 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  MyLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: lambda.lambda_handler
+      Code:
+        S3Bucket: allen-f-stelligent-u-9.1.3
+        S3Key: 921deploy/d3e641b9d4af6c46870cafeb32e5f05e
+      Role:
+        Fn::GetAtt:
+        - MyLambdaExecutionRole
+        - Arn
+      Runtime: python3.9
+  MyLambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: MyLambdaExecutionRole
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Policies:
+      - PolicyName: LambdaPolicy
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Action:
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            Resource:
+              Fn::GetAtt:
+              - MyDDBTable
+              - Arn
+            Effect: Allow
+  ApiGatewayIamRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Sid: ''
+          Effect: Allow
+          Principal:
+            Service:
+            - apigateway.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: /
+      Policies:
+      - PolicyName: LambdaAccess
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action: lambda:InvokeFunction
+            Resource:
+              Fn::GetAtt:
+              - MyLambda
+              - Arn
+  MyApiGatewayRestApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: AllenApiGateway
+  MyApiGatewayMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: ANY
+      Integration:
+        Type: AWS
+        Credentials:
+          Fn::GetAtt:
+          - ApiGatewayIamRole
+          - Arn
+        IntegrationHttpMethod: POST
+        IntegrationResponses:
+        - StatusCode: '200'
+        Uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MyLambda.Arn}/invocations
+      OperationName: hello
+      ResourceId:
+        Fn::GetAtt:
+        - MyApiGatewayRestApi
+        - RootResourceId
+      RestApiId:
+        Ref: MyApiGatewayRestApi
+      MethodResponses:
+      - StatusCode: '200'
+      AuthorizationType: AWS_IAM
+  MyLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:invokeFunction
+      FunctionName:
+        Ref: MyLambda
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Sub: arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${MyApiGatewayRestApi}
+  MyDeployment:
+    Type: AWS::ApiGateway::Deployment
+    Properties:
+      RestApiId:
+        Ref: MyApiGatewayRestApi
+    DependsOn: MyApiGatewayMethod
+  MyDDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: AllenFModule09
+      AttributeDefinitions:
+      - AttributeName: Key1
+        AttributeType: S
+      KeySchema:
+      - AttributeName: Key1
+        KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+Outputs:
+  RestApiId:
+    Value:
+      Ref: MyApiGatewayRestApi
+    Export:
+      Name: AllenModule9RestApiId
+  ResourceId:
+    Value:
+      Fn::GetAtt:
+      - MyApiGatewayRestApi
+      - RootResourceId
+    Export:
+      Name: AllenModule9ApiResourceId

@@ -1,0 +1,14 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  MyCodeBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: "allen-f-stelligent-u-9.1.3"
+        AccessControl: "BucketOwnerFullControl"
+
+Outputs:
+  AllenCodeBucket:
+    Value: !Ref MyCodeBucket
+    Export:
+      Name: AllenFModule9CodeBucket
